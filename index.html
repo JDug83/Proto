@@ -263,6 +263,14 @@
     .limit-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
     .disclaimer.warn{ color:var(--warn); }
     .badge.out{ color:var(--err); }
+    .cost-list{ margin-top:16px; display:grid; gap:2px; font-size:14px; }
+    .cost-list > b{ font-size:13px; color:var(--ink-3); margin-bottom:6px; font-weight:600; }
+    .cost-row{ display:grid; grid-template-columns:1fr auto 74px; align-items:center; gap:12px; padding:7px 10px; border-radius:10px; }
+    .cost-row.on{ background:var(--panel-2); }
+    .cost-row > span:last-child{ text-align:right; font-family:var(--mono); font-size:12px; color:var(--ink-3); }
+    .cost-row .dots{ display:flex; gap:3px; }
+    .cost-row .dots i{ width:8px; height:8px; border-radius:2px; background:var(--line); }
+    .cost-row .dots i.on{ background:var(--glow); }
     .toast{ position:fixed; left:50%; bottom:110px; transform:translate(-50%,20px); opacity:0; pointer-events:none; background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:12px; font-size:14px; font-weight:600; transition:all .25s var(--ease); z-index:100; }
     .toast.show{ opacity:1; transform:translate(-50%,0); }
     .scrim{ display:none; }
@@ -370,11 +378,11 @@
   <!-- Usage -->
   <dialog id="usageDlg" aria-labelledby="usageTitle">
     <div class="dlg-head">
-      <div><h2 id="usageTitle">Today's usage</h2><p id="usageReset">Resets at midnight.</p></div>
+      <div><h2 id="usageTitle">Usage</h2><p id="usageReset">Your 5 hours start when you send a message.</p></div>
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="dlg-body" id="usageRows"></div>
-    <div class="dlg-body" style="padding-top:0"><div class="gpu-note">Each brain has its own daily allowance. Time only counts while you're actively using GazNano 2 with that brain selected — typing, reading or waiting for an answer. Idle time and other tabs don't count. Saved on this device.</div></div>
+    <div class="dlg-body" style="padding-top:0"><div class="gpu-note">You get 100% every 5 hours, starting from your first message. Every answer uses some of it — bigger models use more, smaller ones less, and long answers or High effort use a little extra. When you reach 100% you'll need to wait for it to reset.</div></div>
   </dialog>
 
   <!-- Settings -->
@@ -404,26 +412,30 @@
   /* GazChat server (your PC). GazChat reads the address from gazchat-server.json next to this page.
      You can also type it here instead, e.g. 'https://example.trycloudflare.com'. Leave '' for on-device only. */
   var SERVER_URL = '';
+  /* Which models use the server. 'big' = Gizmo, Max, Genius and Spark 1 use your PC; the small ones run on
+     each person's device (devices that can't run AI use the server for everything). 'all' = every model uses the server. */
+  var SERVER_MODELS = 'big';
   var server = { checked:false, ok:false, url:'', models:{} }, serverCtrl = null;
   var TIERS = {
+    // Gizmo — the best model, runs on the GazChat server only
+    gizmo:  { key:'gizmo',  name:'Gizmo',  family:'nano', own:true, serverOnly:true, group:'main', hours:2, cost:8, gpu:'Server', tagline:'Our best model — for the hardest questions', badge:'Best' },
     // GazNano 2 — everyday chat (Alibaba Qwen 3.5)
-    fast:   { key:'fast',   name:'Fast',   family:'nano', group:'main', hours:10, f16:'Qwen3.5-0.8B-q4f16_1-MLC', f32:'Qwen3.5-0.8B-q4f32_1-MLC', gpu:'~1.6 GB', tagline:'Quickest answers · works on phones' },
-    smart:  { key:'smart',  name:'Smart',  family:'nano', group:'main', hours:10, f16:'Qwen3.5-2B-q4f16_1-MLC',   f32:'Qwen3.5-2B-q4f32_1-MLC',   gpu:'~2.3 GB', tagline:'Best for everyday chats and homework' },
-    genius: { key:'genius', name:'Genius', family:'nano', group:'main', hours:2,  f16:'Qwen3.5-4B-q4f16_1-MLC',   f32:'Qwen3.5-4B-q4f32_1-MLC',   gpu:'~3.9 GB', tagline:'For complex questions and longer answers', badge:'Good graphics' },
-    max:    { key:'max',    name:'Max',    family:'nano', group:'main', hours:2,  f16:'Qwen3.5-9B-q4f16_1-MLC',   f32:'Qwen3.5-9B-q4f32_1-MLC',   gpu:'~6.4 GB', tagline:'For your toughest challenges', badge:'Gaming PC' },
+    fast:   { key:'fast',   name:'Fast',   family:'nano', group:'main', hours:10, cost:1, f16:'Qwen3.5-0.8B-q4f16_1-MLC', f32:'Qwen3.5-0.8B-q4f32_1-MLC', gpu:'~1.6 GB', tagline:'Quickest answers · works on phones' },
+    smart:  { key:'smart',  name:'Smart',  family:'nano', group:'main', hours:10, cost:1.5, f16:'Qwen3.5-2B-q4f16_1-MLC',   f32:'Qwen3.5-2B-q4f32_1-MLC',   gpu:'~2.3 GB', tagline:'Best for everyday chats and homework' },
+    genius: { key:'genius', name:'Genius', family:'nano', group:'main', hours:2, cost:3,  f16:'Qwen3.5-4B-q4f16_1-MLC',   f32:'Qwen3.5-4B-q4f32_1-MLC',   gpu:'~3.9 GB', tagline:'For complex questions and longer answers', badge:'Good graphics' },
+    max:    { key:'max',    name:'Max',    family:'nano', group:'main', hours:2, cost:5,  f16:'Qwen3.5-9B-q4f16_1-MLC',   f32:'Qwen3.5-9B-q4f32_1-MLC',   gpu:'~6.4 GB', tagline:'For your toughest challenges', badge:'Gaming PC' },
     // More models — specialists
-    spark:      { key:'spark',      name:'Spark 1',      family:'code',   coder:true, group:'more', hours:2,  f16:'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-7B-Instruct-q4f32_1-MLC', gpu:'~5.1 GB', tagline:'Writes, explains and fixes code', badge:'Gaming PC' },
-    sparkmini:  { key:'sparkmini',  name:'Spark 1 Mini', family:'code',   coder:true, mini:true, group:'more', hours:10, f16:'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-3B-Instruct-q4f32_1-MLC', gpu:'~2.5 GB', tagline:'Coding help on everyday laptops' },
-    ponder:     { key:'ponder',     name:'Ponder 1',     family:'reason', group:'more', hours:2,  f16:'DeepSeek-R1-Distill-Qwen-7B-q4f16_1-MLC', f32:'DeepSeek-R1-Distill-Qwen-7B-q4f32_1-MLC', gpu:'~5.1 GB', tagline:'Maths, logic and puzzles — thinks it through', badge:'Gaming PC' },
-    pondermini: { key:'pondermini', name:'Ponder 1 Mini', family:'reason', group:'more', hours:10, f16:'DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC', f32:'DeepSeek-R1-Distill-Qwen-1.5B-q4f32_1-MLC', gpu:'~1.6 GB', tagline:'Step-by-step maths on any laptop' },
-    quill:      { key:'quill',      name:'Quill',        family:'write',  group:'more', hours:10, f16:'Llama-3.2-3B-Instruct-q4f16_1-MLC', f32:'Llama-3.2-3B-Instruct-q4f32_1-MLC', gpu:'~2.3 GB', tagline:'Stories, poems, essays and emails' },
-    pocket:     { key:'pocket',     name:'Pocket',       family:'tiny',   group:'more', hours:10, f16:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', gpu:'~0.9 GB', tagline:'Tiny and quick for older devices' }
+    spark:      { key:'spark',      name:'Spark 1',      family:'code',   coder:true, group:'more', hours:2, cost:4,  f16:'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-7B-Instruct-q4f32_1-MLC', gpu:'~5.1 GB', tagline:'Writes, explains and fixes code', badge:'Gaming PC' },
+    sparkmini:  { key:'sparkmini',  name:'Spark 1 Mini', family:'code',   coder:true, mini:true, group:'more', hours:10, cost:1.5, f16:'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-3B-Instruct-q4f32_1-MLC', gpu:'~2.5 GB', tagline:'Coding help on everyday laptops' },
+
+    quill:      { key:'quill',      name:'Quill',        family:'write',  group:'more', hours:10, cost:1.5, f16:'Llama-3.2-3B-Instruct-q4f16_1-MLC', f32:'Llama-3.2-3B-Instruct-q4f32_1-MLC', gpu:'~2.3 GB', tagline:'Stories, poems, essays and emails' },
+    pocket:     { key:'pocket',     name:'Pocket',       family:'tiny',   group:'more', hours:10, cost:0.5, f16:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', gpu:'~0.9 GB', tagline:'Tiny and quick for older devices' }
   };
-  var MAIN_ORDER = ['max', 'genius', 'smart', 'fast'];
-  var MORE_GROUPS = [['Coding', ['spark', 'sparkmini']], ['Maths & reasoning', ['ponder', 'pondermini']], ['Writing', ['quill']], ['Lightweight', ['pocket']]];
-  var EFFORTS = [['low', 'Low', 'Short, quick answers'], ['medium', 'Medium', 'The right length for each question'], ['high', 'High', 'Thinks step by step first — slower but smarter (GazNano 2 models)']];
-  function displayName(t){ return t.family === 'nano' ? 'GazNano 2' : t.name; }
-  function avatarFor(t){ return !t ? 'logo' : t.family === 'code' ? 'spark' : t.family === 'reason' ? 'ponder' : t.family === 'write' ? 'quill' : 'logo'; }
+  var MAIN_ORDER = ['gizmo', 'max', 'genius', 'smart', 'fast'];
+  var MORE_GROUPS = [['Coding', ['spark', 'sparkmini']], ['Writing', ['quill']], ['Lightweight', ['pocket']]];
+  var EFFORTS = [['low', 'Low', 'Short, quick answers'], ['medium', 'Medium', 'The right length for each question'], ['high', 'High', 'Thinks step by step first — slower but smarter, and uses more of your allowance']];
+  function displayName(t){ return t.family === 'nano' && !t.own ? 'GazNano 2' : t.name; }
+  function avatarFor(t){ return !t ? 'logo' : t.family === 'code' ? 'spark' : t.family === 'write' ? 'quill' : 'logo'; }
 
 
   /* =====================================================================
@@ -640,7 +652,10 @@
     opt = Object.assign({}, opt, { signal: c.signal, cache: 'no-store' });
     return fetch(u, opt).finally(function(){ clearTimeout(t); });
   }
-  function onServer(k){ return gpu.server && !!server.models[k]; }
+  function onServer(k){
+    if(!gpu.server || !server.models[k]) return false;
+    return SERVER_MODELS === 'all' || !gpu.webgpu || TIERS[k].hours <= 2;
+  }
   function serverDown(){
     server.ok = false; gpu.server = false; gpu.ok = gpu.webgpu;
     if(!gpu.ok) gpu.reason = gpu.reason || 'The GazChat server is offline and this browser can\'t run AI models itself.';
@@ -658,7 +673,7 @@
     }catch(e){ gpu.reason = 'WebGPU could not start: ' + (e.message || e); }
     return gpu;
   }
-  function recommendedTier(){ if(gpu.server && server.models.smart) return 'smart'; return gpu.mobile || (gpu.maxBuf && gpu.maxBuf < 1073741824) ? 'fast' : 'smart'; }
+  function recommendedTier(){ if(gpu.server && !gpu.webgpu && server.models.smart) return 'smart'; return gpu.mobile || (gpu.maxBuf && gpu.maxBuf < 1073741824) ? 'fast' : 'smart'; }
   function tier(){ return TIERS[prefs.tier] || TIERS[recommendedTier()]; }
   function modelId(t){ return gpu.f16 ? t.f16 : t.f32; }
 
@@ -714,22 +729,34 @@
   }
 
   /* =====================================================================
-     DAILY USAGE LIMITS
-     Fast + Smart: 10 hours a day each. Genius + Max: 2 hours a day each.
-     Only active time counts. Everything resets at midnight.
+     USAGE ALLOWANCE (percentage)
+     Everyone gets 100% every 5 hours. The 5 hours start with your first message.
+     Each answer uses some of it: bigger models use more, smaller ones less,
+     and longer answers / High effort use a bit more. At 100% you have to wait.
      ===================================================================== */
-  var LIMITS = {};
-  Object.keys(TIERS).forEach(function(k){ LIMITS[k] = TIERS[k].hours * 3600; });
-  var TICK = 5, IDLE_MS = 60000;
-  function dayKey(d){ d = d || new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  var usage = load('gn2.usage', null);
-  if(!usage || usage.date !== dayKey()) usage = { date: dayKey(), secs: {}, msgs: {} };
-  function saveUsage(){ store('gn2.usage', usage); }
-  function rollover(){ if(usage.date !== dayKey()){ usage = { date: dayKey(), secs: {}, msgs: {} }; saveUsage(); refreshUsageUI(); } }
-  function usedSecs(k){ rollover(); return usage.secs[k] || 0; }
-  function leftSecs(k){ return Math.max(0, LIMITS[k] - usedSecs(k)); }
-  function isOut(k){ return leftSecs(k) <= 0; }
-  function secsToMidnight(){ var n = new Date(), m = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1); return Math.round((m - n) / 1000); }
+  var WINDOW_MS = 5 * 3600 * 1000;
+  var usage = load('gn2.usage2', null);
+  if(!usage || typeof usage.pct !== 'number') usage = { start: null, pct: 0, msgs: 0 };
+  function saveUsage(){ store('gn2.usage2', usage); }
+  function rollover(){
+    if(usage.start && Date.now() >= usage.start + WINDOW_MS){ usage = { start: null, pct: 0, msgs: 0 }; saveUsage(); refreshUsageUI(); }
+  }
+  function usedPct(){ rollover(); return usage.pct; }
+  function isOut(){ return usedPct() >= 100; }
+  function resetSecs(){ rollover(); return usage.start ? (usage.start + WINDOW_MS - Date.now()) / 1000 : WINDOW_MS / 1000; }
+  function resetClock(){ var d = new Date(Date.now() + resetSecs() * 1000); return d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }); }
+  function baseCost(k){ return (TIERS[k] && TIERS[k].cost) || 1; }
+  function costFor(k, chars){
+    var len = Math.min(2, Math.max(0.6, 0.6 + (chars || 0) / 2500));
+    return Math.round(baseCost(k) * len * (prefs.effort === 'high' ? 1.5 : 1) * 10) / 10;
+  }
+  function charge(k, chars){
+    rollover();
+    if(!usage.start) usage.start = Date.now();
+    usage.pct = Math.min(100, Math.round((usage.pct + costFor(k, chars)) * 10) / 10);
+    usage.msgs++;
+    saveUsage(); refreshUsageUI();
+  }
   function fmtDur(sec){
     sec = Math.max(0, Math.round(sec));
     var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
@@ -738,42 +765,31 @@
     if(m) return m + 'm';
     return sec > 0 ? 'under 1m' : '0m';
   }
-  var lastActivity = Date.now();
-  ['keydown', 'pointerdown', 'touchstart', 'wheel', 'scroll'].forEach(function(ev){
-    document.addEventListener(ev, function(){ lastActivity = Date.now(); }, { passive:true, capture:true });
-  });
-  setInterval(function(){
-    rollover();
-    if(document.hidden || !gpu.ok) return;
-    if(!busy && Date.now() - lastActivity > IDLE_MS) return;
-    var k = tier().key;
-    usage.secs[k] = Math.min(LIMITS[k], (usage.secs[k] || 0) + TICK);
-    saveUsage(); refreshUsageUI();
-  }, TICK * 1000);
+  setInterval(rollover, 30000);
 
-  function usageRowHtml(k){
-    var t = TIERS[k], used = usedSecs(k), lim = LIMITS[k], left = lim - used, pct = Math.min(100, used / lim * 100);
-    var cls = left <= 0 ? ' out' : left < 15 * 60 ? ' low' : '';
-    return '<div class="use-row' + cls + (tier().key === k ? ' on' : '') + '"><div class="use-top"><b>' + t.name + (tier().key === k ? ' <span class="badge">IN USE</span>' : '') + '</b>' +
-      '<span>' + fmtDur(used) + ' / ' + fmtDur(lim) + '</span></div><div class="bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
-      '<small>' + (left <= 0 ? 'Used up for today — resets at midnight.' : fmtDur(left) + ' left today') + ' · ' + (usage.msgs[k] || 0) + ' message' + ((usage.msgs[k] || 0) === 1 ? '' : 's') + '</small></div>';
-  }
   function refreshUsageUI(){
+    var pct = usedPct(), out = pct >= 100;
     if($('usageDlg') && $('usageDlg').open){
-      $('usageRows').innerHTML = Object.keys(TIERS).map(usageRowHtml).join('');
-      $('usageReset').textContent = 'Resets at midnight — in ' + fmtDur(secsToMidnight()) + '.';
+      $('usageReset').textContent = usage.start ? 'Resets in ' + fmtDur(resetSecs()) + ' (at ' + resetClock() + ').' : 'Your 5 hours start when you send a message.';
+      var order = MAIN_ORDER.concat(MORE_GROUPS.reduce(function(a, g){ return a.concat(g[1]); }, []));
+      $('usageRows').innerHTML =
+        '<div class="use-row' + (out ? ' out' : pct >= 80 ? ' low' : '') + ' on"><div class="use-top"><b>' + (out ? 'Used up' : Math.round(pct) + '% used') + '</b><span>' + usage.msgs + ' message' + (usage.msgs === 1 ? '' : 's') + '</span></div>' +
+        '<div class="bar"><i style="width:' + Math.min(100, pct).toFixed(1) + '%"></i></div>' +
+        '<small>' + (out ? 'You\'ve used your allowance. You can chat again at ' + resetClock() + '.' : Math.round(100 - pct) + '% left') + '</small></div>' +
+        '<div class="cost-list"><b>How much each answer uses</b>' + order.map(function(k){
+          return '<div class="cost-row' + (tier().key === k ? ' on' : '') + '"><span>' + esc(TIERS[k].name) + '</span><span class="dots">' + costDots(k) + '</span><span>about ' + baseCost(k) + '%</span></div>';
+        }).join('') + '</div>';
     }
     var d = $('disclaimer'); if(!d) return;
-    var k = tier().key, left = leftSecs(k);
-    if(gpu.ok && left <= 0){ d.textContent = TIERS[k].name + ' is used up for today. Pick another brain or come back after midnight.'; d.classList.add('warn'); }
-    else if(gpu.ok && left < 15 * 60){ d.textContent = fmtDur(left) + ' of ' + TIERS[k].name + ' left today.'; d.classList.add('warn'); }
+    if(gpu.ok && out){ d.textContent = 'You\'ve used 100% of your allowance — you can chat again at ' + resetClock() + '.'; d.classList.add('warn'); }
+    else if(gpu.ok && pct >= 80){ d.textContent = Math.round(pct) + '% of your allowance used — resets at ' + resetClock() + '.'; d.classList.add('warn'); }
     else { d.textContent = 'GazNano 2 can make mistakes — check anything important.'; d.classList.remove('warn'); }
   }
+  function costDots(k){ var c = baseCost(k), n = c <= 1 ? 1 : c <= 2 ? 2 : c <= 4 ? 3 : c <= 6 ? 4 : 5, h = ''; for(var i = 0; i < 5; i++) h += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return h; }
   function limitNote(k){
-    var others = Object.keys(TIERS).filter(function(x){ return x !== k && !isOut(x); });
-    return { text: '**You\'ve used today\'s ' + fmtDur(LIMITS[k]) + ' of ' + TIERS[k].name + '.** It resets at midnight — in ' + fmtDur(secsToMidnight()) + '.' +
-      (others.length ? '\n\nYou can keep chatting by switching to another brain:' : '\n\nAll brains are used up for today. See you tomorrow!'), others: others };
+    return { text: '**You\'ve used 100% of your GazChat allowance.** You can chat again in ' + fmtDur(resetSecs()) + ' (at ' + resetClock() + ').\n\nTip: smaller models like Fast and Pocket use less of your allowance, so it lasts longer.', others: [] };
   }
+
   var workerRef = null, WD_FIRST = 150, WD_MID = 45;   // watchdog limits in seconds
   /* If the engine freezes (usually the graphics chip running out of memory), throw it away
      completely so the next message starts with a fresh one. */
@@ -830,15 +846,7 @@
     ].filter(Boolean).join('\n');
   }
 
-  function ponderPrompt(){
-    return [
-      'You are Ponder 1, the maths and reasoning model from GazStudios. You run privately inside the user\'s web browser.',
-      prefs.name ? 'The user\'s name is ' + prefs.name + '.' : '',
-      'Work through problems step by step, check your working, and finish with a clear final line starting "Answer:".',
-      'Write maths in plain text (×, ÷, ^, ½, 3/4, √) — do not use LaTeX. Use British English.',
-      'For homework, explain the method so the user can do the next one themselves. Keep everything family-friendly.'
-    ].filter(Boolean).join('\n');
-  }
+
   function quillPrompt(){
     return [
       'You are Quill, the writing model from GazStudios. You run privately inside the user\'s web browser.',
@@ -858,12 +866,12 @@
   function systemPrompt(){
     var t = tier();
     if(gpu.ok && t.family === 'code') return sparkPrompt();
-    if(gpu.ok && t.family === 'reason') return ponderPrompt();
     if(gpu.ok && t.family === 'write') return quillPrompt();
     var now = new Date();
     var style = effortStyle() + (t.family === 'tiny' ? ' Keep answers brief.' : '');
     return [
       t.family === 'tiny' ? 'You are Pocket, a small, friendly AI assistant made by GazStudios. You run privately inside the user\'s web browser.'
+                          : t.own ? 'You are Gizmo, the most capable AI assistant made by GazStudios. Think carefully and give expert, accurate, well-organised answers.'
                           : 'You are GazNano 2, a friendly and clever AI assistant made by GazStudios. You run privately inside the user\'s web browser.',
       // Date only (no clock time): keeping this text identical between messages lets the engine work faster.
       'Today is ' + now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) + '.',
@@ -937,12 +945,12 @@
   function fillAi(el, m){
     var tt = m.tier && TIERS[m.tier];
     el.querySelector('.who-name').textContent = tt ? displayName(tt) : 'GazNano 2';
-    el.querySelector('.who span').textContent = tt && tt.family === 'nano' ? tt.name : '';
+    el.querySelector('.who span').textContent = tt && tt.family === 'nano' && !tt.own ? tt.name : '';
     if(tt && avatarFor(tt) !== 'logo') el.querySelector('.avatar').innerHTML = '<use href="#' + avatarFor(tt) + '"/>';
     el.querySelector('.slot-tool').innerHTML = m.tool ? '<span class="tool-chip"><svg width="14" height="14" aria-hidden="true"><use href="#i-calc"/></svg>' + esc(m.tool) + '</span>' : '';
     el.querySelector('.slot-think').innerHTML = m.think ? '<details class="reasoning"><summary>Thought' + (m.thinkSecs ? ' for ' + m.thinkSecs + 's' : '') + '</summary><div class="r-body">' + esc(m.think) + '</div></details>' : '';
     el.querySelector('.md').innerHTML = renderMd(m.content, m.sources) +
-      (m.limitOthers && m.limitOthers.length ? '<div class="limit-actions">' + m.limitOthers.map(function(k){ return '<button type="button" class="btn" data-switch="' + k + '">Use ' + TIERS[k].name + ' (' + fmtDur(leftSecs(k)) + ' left)</button>'; }).join('') + '</div>' : '');
+      '';
     el.querySelector('.slot-sources').innerHTML = m.sources && m.sources.length ? '<div class="sources">' + m.sources.map(function(s, i){
       return '<a class="src" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer"><b>' + (i + 1) + '</b><span>' + esc(s.title) + ' · Wikipedia</span></a>'; }).join('') + '</div>' : '';
     el.querySelector('.actions').innerHTML =
@@ -976,7 +984,7 @@
     var t = tier(), lite = gpu.checked && !gpu.ok, fam = lite ? 'nano' : t.family;
     var label = { code:'Code', reason:'Maths & logic', write:'Writing', tiny:'Lightweight' }[fam];
     $('brandLabel').textContent = lite ? 'GazNano 2' : displayName(t);
-    $('tierLabel').textContent = lite ? 'Lite' : fam === 'nano' ? t.name : label;
+    $('tierLabel').textContent = lite ? 'Lite' : t.own ? 'Best model' : fam === 'nano' ? t.name : label;
     $('modelBtnLabel').textContent = lite ? 'Lite mode' : fam === 'nano' ? t.name : t.name;
     $('input').placeholder = lite ? 'Message GazNano 2…' : {
       code: 'Ask Spark 1 to write, explain or fix code…', reason: 'Give ' + t.name + ' a maths problem or puzzle…',
@@ -1023,7 +1031,7 @@
       await checkGpu(); updateTierUI();
 
       // Daily allowance for this brain
-      if(gpu.ok && isOut(t.key)){
+      if(gpu.ok && isOut()){
         var ln = limitNote(t.key);
         msg.content = ln.text; msg.error = true; msg.limitOthers = ln.others; msg.tier = t.key;
         c.messages.push(msg); saveChats();
@@ -1046,6 +1054,11 @@
       if(stopFlag) throw new DOMException('Stopped', 'AbortError');
 
       var useServer = onServer(t.key);
+      if(!useServer && t.serverOnly && gpu.ok){
+        msg.content = '**' + t.name + ' runs on the GazChat server, which is offline right now.** Pick another model and try again.'; msg.error = true;
+        c.messages.push(msg); saveChats(); el.dataset.idx = c.messages.indexOf(msg); fillAi(el, msg); markLast(); scrollDown(); setStatus('');
+        return;
+      }
       if(!useServer && !gpu.webgpu){
         setStatus('');
         msg.content = liteAnswer(text, notes, calc);
@@ -1145,7 +1158,7 @@
       if(!msg.content) msg.content = stopFlag ? '_(stopped)_' : '_No answer came back — please try again._';
       c.messages.push(msg);
       c.at = Date.now(); saveChats();
-      if(msg.tier){ rollover(); usage.msgs[msg.tier] = (usage.msgs[msg.tier] || 0) + 1; saveUsage(); refreshUsageUI(); }
+      if(msg.tier && !msg.error && !(stopFlag && !msg.content.replace(/_\(stopped\)_/, '').trim())) charge(msg.tier, msg.content.length + (msg.think || '').length / 2);
       el.dataset.idx = c.messages.indexOf(msg);
       fillAi(el, msg); markLast(); scrollDown();
       if(prefs.speak && !stopFlag) speak(msg.content);
@@ -1190,6 +1203,7 @@
   var isPhone = /Android.+Mobile|iPhone|iPod/i.test(navigator.userAgent);
   function sendNow(){
     if(busy){ stopFlag = true; interruptAI(); return; }
+    if(gpu.ok && isOut()){ toast('You\'ve used 100% — you can chat again at ' + resetClock()); refreshUsageUI(); return; }
     var t = input.value.trim();
     if(!t){ input.focus(); return; }
     input.value = ''; grow(); ask(t);
@@ -1271,8 +1285,8 @@
   var menuPanel = 'main', cachedSet = {}, cacheChecked = false;
   function chev(cls){ return '<svg class="' + cls + '" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg>'; }
   function pickHtml(k){
-    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(k), pills = '', srv = onServer(k), usable = srv || gpu.webgpu;
-    if(out) pills += '<span class="mpill out">Used up today</span>';
+    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(), pills = '', srv = onServer(k), usable = srv || (gpu.webgpu && !t.serverOnly);
+    if(out) pills += '<span class="mpill out">Used up</span>';
     else if(k === recommendedTier() && gpu.ok) pills += '<span class="mpill rec">' + (gpu.server ? 'Recommended' : 'Best for this device') + '</span>';
     else if(t.badge) pills += '<span class="mpill">' + t.badge + '</span>';
     if(srv) pills += '<span class="mpill ok">Server</span>';
@@ -1280,7 +1294,7 @@
     var ico = t.group === 'more' ? '<svg class="ico" aria-hidden="true"><use href="#' + avatarFor(t) + '"/></svg>' : '';
     return '<button type="button" class="mi" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (usable && !out ? '' : ' disabled') + '>' + ico +
       '<span class="t"><span class="n">' + esc(t.name) + pills + '</span><span class="d">' + esc(t.tagline) +
-      (gpu.ok ? ' · ' + (out ? 'resets at midnight' : fmtDur(leftSecs(k)) + ' left today') : '') + '</span></span>' +
+      (gpu.ok ? ' · ' + (out ? 'resets at ' + resetClock() : 'uses about ' + baseCost(k) + '%') : '') + (t.serverOnly && !srv ? ' · server offline' : '') + '</span></span>' +
       (sel ? '<svg class="chk" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>' : '') + '</button>';
   }
   function renderMenu(){
@@ -1291,18 +1305,18 @@
         '<button type="button" class="mi" data-panel="effort"><span class="t"><span class="n">Effort</span></span><span class="val">' + effortName + '</span>' + chev('rt') + '</button>' +
         '<button type="button" class="mi" data-panel="more"><span class="t"><span class="n">More models</span><span class="d">Coding, maths, writing and lightweight</span></span>' +
           (cur.group === 'more' ? '<span class="val">' + esc(cur.name) + '</span>' : '') + chev('rt') + '</button>' +
-        '<div class="mfoot">' + (gpu.server ? '<b>Running on the GazChat server</b> — nothing to download. Models marked Server answer straight away. <button type="button" data-usage>See today\'s usage</button>' : gpu.ok ? 'Bigger models are smarter but need a stronger computer. Each downloads once, then runs privately on this device. <button type="button" data-usage>See today\'s usage</button>'
+        '<div class="mfoot">' + (gpu.server ? (gpu.webgpu && SERVER_MODELS !== 'all' ? '<b>Models marked Server</b> run on the GazChat server — nothing to download. The others download once and run on this device.' : '<b>Running on the GazChat server</b> — nothing to download. Models marked Server answer straight away.') + ' <button type="button" data-usage>See usage</button>' : gpu.ok ? 'Bigger models are smarter but need a stronger computer. Each downloads once, then runs privately on this device. <button type="button" data-usage>See usage</button>'
           : '<b>Lite mode:</b> ' + esc(gpu.reason || 'this browser can\'t run AI models.') + ' GazNano 2 can still answer facts from Wikipedia and do maths.') + '</div>';
     } else if(menuPanel === 'effort'){
       html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>Effort</div>' +
         EFFORTS.map(function(e){ var sel = prefs.effort === e[0];
           return '<button type="button" class="mi" role="menuitemradio" aria-checked="' + sel + '" data-effort="' + e[0] + '"><span class="t"><span class="n">' + e[1] + '</span><span class="d">' + e[2] + '</span></span>' +
             (sel ? '<svg class="chk" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>' : '') + '</button>'; }).join('') +
-        '<div class="mfoot">Ponder models always think step by step. Spark and Quill use Effort to decide how long their answers are.</div>';
+        '<div class="mfoot">Spark and Quill use Effort to decide how long their answers are. High effort uses more of your allowance.</div>';
     } else {
       html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>More models</div>' +
         MORE_GROUPS.map(function(g){ return '<div class="msec">' + g[0] + '</div>' + g[1].map(pickHtml).join(''); }).join('') +
-        '<div class="mfoot">Spark is built on Qwen2.5-Coder, Ponder on DeepSeek-R1, Quill on Meta\'s Llama 3.2, and Pocket and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
+        '<div class="mfoot">Spark is built on Qwen2.5-Coder, Quill on Meta\'s Llama 3.2, and Gizmo, Pocket and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
     }
     m.innerHTML = html;
   }
@@ -1310,7 +1324,7 @@
     if(cacheChecked || !gpu.webgpu) return; cacheChecked = true;
     try{
       var w = await getWebLLM();
-      await Promise.all(Object.keys(TIERS).map(async function(k){ try{ if(await w.hasModelInCache(modelId(TIERS[k]))) cachedSet[k] = true; }catch(e){} }));
+      await Promise.all(Object.keys(TIERS).filter(function(k){ return !TIERS[k].serverOnly; }).map(async function(k){ try{ if(await w.hasModelInCache(modelId(TIERS[k]))) cachedSet[k] = true; }catch(e){} }));
       if(!$('modelMenu').hidden) renderMenu();
     }catch(e){}
   }
@@ -1334,7 +1348,7 @@
       if(busy) return toast('Wait for the current answer to finish');
       prefs.tier = pick.dataset.pick; savePrefs(); updateTierUI(); refreshUsageUI(); closeMenu();
       var t = TIERS[prefs.tier];
-      toast(displayName(t) + (t.family === 'nano' ? ' ' + t.name : '') + ' selected' + (engine && loadedModel !== modelId(t) ? ' — loads on your next message' : ''));
+      toast(displayName(t) + (t.family === 'nano' && !t.own ? ' ' + t.name : '') + ' selected' + (engine && loadedModel !== modelId(t) ? ' — loads on your next message' : ''));
       input.focus();
     }
   });
@@ -1403,7 +1417,7 @@
   if(!matchMedia('(pointer:coarse)').matches) input.focus();
 
   // Expose pure helpers for testing
-  window.__gn2 = { setWatchdog: function(a, b){ WD_FIRST = a; WD_MID = b; }, usage: function(){ return usage; }, isOut: isOut, leftSecs: leftSecs, fmtDur: fmtDur, renderMd: renderMd, splitThinking: splitThinking, server: function(){ return server; }, gpu: function(){ return gpu; }, safeMath: safeMath, mathFromText: mathFromText, shouldLookUp: shouldLookUp, searchQuery: searchQuery };
+  window.__gn2 = { setWatchdog: function(a, b){ WD_FIRST = a; WD_MID = b; }, usage: function(){ return usage; }, isOut: isOut, usedPct: usedPct, charge: charge, costFor: costFor, resetSecs: resetSecs, fmtDur: fmtDur, renderMd: renderMd, splitThinking: splitThinking, server: function(){ return server; }, gpu: function(){ return gpu; }, safeMath: safeMath, mathFromText: mathFromText, shouldLookUp: shouldLookUp, searchQuery: searchQuery };
   })();
   </script>
 </body>
