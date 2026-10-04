@@ -401,6 +401,10 @@
      CONFIG
      ===================================================================== */
   var WEBLLM_URL = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+esm';
+  /* GazChat server (your PC). GazChat reads the address from gazchat-server.json next to this page.
+     You can also type it here instead, e.g. 'https://example.trycloudflare.com'. Leave '' for on-device only. */
+  var SERVER_URL = '';
+  var server = { checked:false, ok:false, url:'', models:{} }, serverCtrl = null;
   var TIERS = {
     // GazNano 2 — everyday chat (Alibaba Qwen 3.5)
     fast:   { key:'fast',   name:'Fast',   family:'nano', group:'main', hours:10, f16:'Qwen3.5-0.8B-q4f16_1-MLC', f32:'Qwen3.5-0.8B-q4f32_1-MLC', gpu:'~1.6 GB', tagline:'Quickest answers · works on phones' },
@@ -433,7 +437,7 @@
   function thinkOn(){ return prefs.effort === 'high' && tier().family === 'nano'; }
   var chats = load('gn2.chats', []);
   var currentId = null;
-  var gpu = { checked:false, ok:false, f16:false, mobile:false, reason:'' };
+  var gpu = { checked:false, ok:false, webgpu:false, server:false, f16:false, mobile:false, reason:'' };
   var engine = null, webllm = null, loadedModel = null, loading = null;
   var busy = false, stopFlag = false;
 
@@ -607,18 +611,54 @@
   async function checkGpu(){
     if(gpu.checked) return gpu;
     gpu.checked = true;
+    await Promise.all([checkWebGpu(), checkServer()]);
+    gpu.server = server.ok;
+    gpu.ok = gpu.webgpu || gpu.server;
+    if(gpu.server) gpu.reason = '';
+    return gpu;
+  }
+  async function checkServer(){
+    if(server.checked) return server;
+    server.checked = true;
+    try{
+      var url = SERVER_URL;
+      try{
+        var cfg = await fetchTimeout('gazchat-server.json?t=' + Date.now(), {}, 3000);
+        if(cfg.ok){ var j = await cfg.json(); if(j && j.url) url = j.url; }
+      }catch(e){}
+      try{ var q = new URLSearchParams(location.search).get('server'); if(q) url = q; }catch(e){}
+      url = String(url || '').trim().replace(/\/+$/, '');
+      if(!/^https?:\/\//.test(url)) return server;
+      var r = await fetchTimeout(url + '/health', {}, 4000);
+      var h = await r.json();
+      if(h && h.ok){ server.ok = true; server.url = url; server.models = h.models || {}; }
+    }catch(e){}
+    return server;
+  }
+  function fetchTimeout(u, opt, ms){
+    var c = new AbortController(), t = setTimeout(function(){ c.abort(); }, ms);
+    opt = Object.assign({}, opt, { signal: c.signal, cache: 'no-store' });
+    return fetch(u, opt).finally(function(){ clearTimeout(t); });
+  }
+  function onServer(k){ return gpu.server && !!server.models[k]; }
+  function serverDown(){
+    server.ok = false; gpu.server = false; gpu.ok = gpu.webgpu;
+    if(!gpu.ok) gpu.reason = gpu.reason || 'The GazChat server is offline and this browser can\'t run AI models itself.';
+    updateTierUI(); refreshUsageUI();
+  }
+  async function checkWebGpu(){
     gpu.mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || matchMedia('(pointer:coarse)').matches && screen.width < 900;
     if(!('gpu' in navigator)){ gpu.reason = 'This browser has no WebGPU. Use Chrome or Edge on a computer, or Chrome on a recent Android phone.'; return gpu; }
     try{
       var a = await navigator.gpu.requestAdapter();
       if(!a){ gpu.reason = 'WebGPU is switched off or your graphics chip is not supported.'; return gpu; }
-      gpu.ok = true;
+      gpu.webgpu = true;
       gpu.f16 = a.features && a.features.has('shader-f16');
       gpu.maxBuf = a.limits && a.limits.maxBufferSize || 0;
     }catch(e){ gpu.reason = 'WebGPU could not start: ' + (e.message || e); }
     return gpu;
   }
-  function recommendedTier(){ return gpu.mobile || (gpu.maxBuf && gpu.maxBuf < 1073741824) ? 'fast' : 'smart'; }
+  function recommendedTier(){ if(gpu.server && server.models.smart) return 'smart'; return gpu.mobile || (gpu.maxBuf && gpu.maxBuf < 1073741824) ? 'fast' : 'smart'; }
   function tier(){ return TIERS[prefs.tier] || TIERS[recommendedTier()]; }
   function modelId(t){ return gpu.f16 ? t.f16 : t.f32; }
 
@@ -626,6 +666,52 @@
      ENGINE (WebLLM in a worker, falls back to main thread)
      ===================================================================== */
   function setDot(state){ $('statusDot').className = 'dot' + (state ? ' ' + state : ''); }
+
+  /* Streams an answer from the GazChat server in the same shape WebLLM uses. */
+  async function* serverStream(t, params, think){
+    var ctrl = new AbortController(); serverCtrl = ctrl;
+    var res;
+    try{
+      res = await fetch(server.url + '/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, signal: ctrl.signal, cache:'no-store',
+        body: JSON.stringify({ tier: t.key, messages: params.messages, temperature: params.temperature, top_p: params.top_p,
+          presence_penalty: params.presence_penalty, max_tokens: params.max_tokens, think: think }) });
+    }catch(e){
+      if(e && e.name === 'AbortError') return;
+      var err = new Error('The GazChat server didn\'t answer'); err.serverDown = true; throw err;
+    }
+    if(!res.ok){
+      var j = {}; try{ j = await res.json(); }catch(e){}
+      var e2 = new Error(j.error || ('Server error ' + res.status)); e2.serverMsg = !!j.error; e2.status = res.status; throw e2;
+    }
+    var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', inThink = false;
+    var wrap = function(s){ return { choices: [{ delta: { content: s } }] }; };
+    try{
+      while(true){
+        var r = await reader.read();
+        if(r.done) break;
+        buf += dec.decode(r.value, { stream:true });
+        var lines = buf.split('\n'); buf = lines.pop();
+        for(var i = 0; i < lines.length; i++){
+          if(!lines[i].trim()) continue;
+          var o = JSON.parse(lines[i]);
+          if(o.error){ var e3 = new Error(o.error); e3.serverMsg = true; throw e3; }
+          var out = '';
+          if(o.think){ if(!inThink){ inThink = true; out += '<think>'; } out += o.think; }
+          if(o.text){ if(inThink){ inThink = false; out += '</think>'; } out += o.text; }
+          if(out) yield wrap(out);
+          if(o.done){ if(inThink) yield wrap('</think>'); return; }
+        }
+      }
+      if(inThink) yield wrap('</think>');
+    }catch(e){
+      if(e && e.name === 'AbortError'){ if(inThink) yield wrap('</think>'); return; }
+      throw e;
+    }finally{ serverCtrl = null; }
+  }
+  function interruptAI(){
+    if(serverCtrl){ try{ serverCtrl.abort(); }catch(e){} }
+    try{ engine && engine.interruptGenerate(); }catch(e){}
+  }
 
   /* =====================================================================
      DAILY USAGE LIMITS
@@ -688,42 +774,21 @@
     return { text: '**You\'ve used today\'s ' + fmtDur(LIMITS[k]) + ' of ' + TIERS[k].name + '.** It resets at midnight — in ' + fmtDur(secsToMidnight()) + '.' +
       (others.length ? '\n\nYou can keep chatting by switching to another brain:' : '\n\nAll brains are used up for today. See you tomorrow!'), others: others };
   }
-  var workerRef = null, WD_FIRST = 180, WD_MID = 90;   // watchdog limits in seconds
-  var engineEpoch = 0;      // bumped whenever the engine is thrown away
-  var engineDirty = false;  // set when a generation hung — rebuild before the next one
-  var resetting = null;     // in-flight teardown, awaited before building a new engine
-
-  /* If the engine freezes (usually the graphics chip running out of memory, or the
-     browser reclaiming the GPU process after a while), throw it away completely so
-     the next message starts with a fresh one. Safe to call at any time — including
-     while a model is still loading or generating. */
+  var workerRef = null, WD_FIRST = 150, WD_MID = 45;   // watchdog limits in seconds
+  /* If the engine freezes (usually the graphics chip running out of memory), throw it away
+     completely so the next message starts with a fresh one. */
   function hardResetEngine(){
-    var doomed = engine, w = workerRef, oldLoading = loading;
+    try{ if(engine && engine.unload) engine.unload().catch(function(){}); }catch(e){}
+    try{ if(workerRef) workerRef.terminate(); }catch(e){}
     engine = null; loadedModel = null; workerRef = null; loading = null;
-    engineEpoch++;
-    var unloadP = null;
-    try{ if(doomed && doomed.unload) unloadP = Promise.resolve(doomed.unload()).catch(function(){}); }catch(e){}
-    try{ if(w) w.terminate(); }catch(e){}
     setDot('');
-    resetting = Promise.all([unloadP, oldLoading ? oldLoading.catch(function(){}) : null].filter(Boolean)).then(function(){});
-    return resetting;
-  }
-  /* Lets the Stop button cut a generation short even while we are still waiting for
-     the very first token (when the stream loop is blocked on it.next()). */
-  var activeStop = null;
-  function requestStop(){
-    stopFlag = true;
-    if(activeStop){ try{ activeStop(); }catch(e){} }
-    else { try{ if(engine) engine.interruptGenerate(); }catch(e){} }
   }
   async function getWebLLM(){ if(!webllm) webllm = await import(WEBLLM_URL); return webllm; }
 
   async function ensureEngine(onProgress){
-    if(resetting){ try{ await resetting; }catch(e){} resetting = null; }
     var id = modelId(tier());
     if(engine && loadedModel === id) return engine;
     if(loading) return loading;
-    var epoch = engineEpoch;
     loading = (async function(){
       setDot('busy');
       var w = await getWebLLM();
@@ -732,32 +797,23 @@
         engine.setInitProgressCallback(cb);
         await engine.reload(id);
       } else {
-        var created = null, worker = null;
         try{
           var src = 'import * as w from "' + WEBLLM_URL + '"; const h = new w.WebWorkerMLCEngineHandler(); self.onmessage = (e) => h.onmessage(e);';
-          worker = new Worker(URL.createObjectURL(new Blob([src], { type:'text/javascript' })), { type:'module' });
-          created = await w.CreateWebWorkerMLCEngine(worker, id, { initProgressCallback: cb });
+          var worker = new Worker(URL.createObjectURL(new Blob([src], { type:'text/javascript' })), { type:'module' });
+          workerRef = worker;
+          engine = await w.CreateWebWorkerMLCEngine(worker, id, { initProgressCallback: cb });
         }catch(e){
           console.warn('Worker engine failed, using main thread', e);
-          try{ if(worker) worker.terminate(); }catch(_){}
-          worker = null;
-          created = await w.CreateMLCEngine(id, { initProgressCallback: cb });
+          engine = await w.CreateMLCEngine(id, { initProgressCallback: cb });
         }
-        // The engine may have been thrown away while it was still loading — discard this one.
-        if(epoch !== engineEpoch){
-          try{ created.unload && created.unload(); }catch(_){}
-          try{ if(worker) worker.terminate(); }catch(_){}
-          throw new Error('Engine was reset while loading');
-        }
-        engine = created; workerRef = worker;
       }
       loadedModel = id;
       setDot('ok');
       return engine;
     })();
     try{ return await loading; }
-    catch(e){ setDot('err'); if(epoch === engineEpoch){ engine = null; loadedModel = null; } throw e; }
-    finally{ if(epoch === engineEpoch) loading = null; }
+    catch(e){ setDot('err'); engine = null; loadedModel = null; throw e; }
+    finally{ loading = null; }
   }
 
   function sparkPrompt(){
@@ -962,7 +1018,7 @@
     mdEl.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
     setBusy(true); stopFlag = false;
 
-    var t = tier(), msg = { role:'assistant', content:'', at:Date.now(), tier: gpu.ok ? t.key : null };
+    var t = tier(), msg = { role:'assistant', content:'', at:Date.now(), tier: gpu.ok ? t.key : null, server: onServer(t.key) || undefined };
     try{
       await checkGpu(); updateTierUI();
 
@@ -989,15 +1045,16 @@
       }
       if(stopFlag) throw new DOMException('Stopped', 'AbortError');
 
-      if(!gpu.ok){
+      var useServer = onServer(t.key);
+      if(!useServer && !gpu.webgpu){
         setStatus('');
         msg.content = liteAnswer(text, notes, calc);
         msg.tier = null;
       } else {
-        // If a previous answer tripped the watchdog, start from a clean engine.
-        if(engineDirty){ engineDirty = false; await hardResetEngine(); }
         // Load the brain (first time downloads it)
-        if(!engine || loadedModel !== modelId(t)){
+        if(useServer){
+          setStatus('<span class="typing" style="padding:0"><i></i><i></i><i></i></span>Sending to the GazChat server…');
+        } else if(!engine || loadedModel !== modelId(t)){
           var cached = false;
           try{ cached = await (await getWebLLM()).hasModelInCache(modelId(t)); }catch(e){}
           status.innerHTML = '<div class="load-card"><b>' + (cached ? 'Waking up' : 'Downloading') + ' the ' + t.name + ' brain…</b><p>' +
@@ -1009,12 +1066,10 @@
         setStatus(notes.length ? '<svg width="14" height="14" aria-hidden="true"><use href="#i-globe"/></svg>Read ' + notes.length + ' Wikipedia article' + (notes.length > 1 ? 's' : '') : '');
         if(stopFlag) throw new DOMException('Stopped', 'AbortError');
 
-        var eng = engine;
-        var raw = '', thinkRaw = '', started = Date.now(), thinkEnd = 0, frame = null, hung = false;
-        var combineRaw = function(){ return thinkRaw ? (raw.indexOf(' thinking') === -1 ? ' thinking' + thinkRaw + '\u003c/think\u003e' + raw : raw) : raw; };
+        var raw = '', started = Date.now(), thinkEnd = 0, frame = null;
         var paint = function(){
           frame = null;
-          var parts = splitThinking(combineRaw());
+          var parts = splitThinking(raw);
           if(parts.think){
             if(!thinkEnd && parts.answer) thinkEnd = Date.now();
             el.querySelector('.slot-think').innerHTML = '<details class="reasoning"' + (parts.answer ? '' : ' open') + '><summary>' +
@@ -1035,81 +1090,53 @@
         };
         if(fam === 'nano') params.extra_body = { enable_thinking: th };   // only Qwen 3.5 has a thinking switch
 
-        /* Watchdog + stream runner.
-           The important bit: when an answer is interrupted (Stop button or a stall) we
-           keep DRAINING the stream instead of breaking out of it. WebLLM holds a lock
-           around each generation and only releases it when the stream finishes — if we
-           just break, the lock stays held and every later message waits forever. */
-        var runOnce = async function(){
-          raw = ''; thinkRaw = ''; started = Date.now(); thinkEnd = 0; hung = false;
-          var lastTok = Date.now(), gotFirst = false, rejectHang, stopTimer = null;
-          var hangP = new Promise(function(_, rej){ rejectHang = rej; }); hangP.catch(function(){});
-          var spin = '<span class="typing" style="padding:0"><i></i><i></i><i></i></span>';
-          var wd = setInterval(function(){
-            var quiet = (Date.now() - lastTok) / 1000;
-            if(!gotFirst && quiet > 5){
-              setStatus(spin + (quiet < 40 ? 'Reading your message… ' + Math.round(quiet) + 's'
-                : 'Still working… ' + Math.round(quiet) + 's — long chats are slower on this device. Starting a new chat helps.'));
-            }
-            if(!hung && quiet > (gotFirst ? WD_MID : WD_FIRST)){
-              hung = true; engineDirty = true;
-              try{ eng.interruptGenerate(); }catch(e){}
-              setTimeout(function(){ rejectHang(new Error('GazNano stopped responding')); }, 6000);
-            }
-          }, 1000);
-          activeStop = function(){
-            if(stopTimer) return;
-            try{ eng.interruptGenerate(); }catch(e){}
-            stopTimer = setTimeout(function(){ rejectHang(new Error('GazNano stopped responding')); }, 8000);
-          };
-          try{
-            var stream = await Promise.race([eng.chat.completions.create(params), hangP]);
-            var it = stream[Symbol.asyncIterator]();
-            while(true){
-              var step = await Promise.race([it.next(), hangP]);
-              if(step.done) break;
-              var chunk = step.value;
-              if(!eng || eng !== engine) break;   // engine was rebuilt underneath us
-              var delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
-              if(delta && delta.reasoning_content){ lastTok = Date.now(); thinkRaw += delta.reasoning_content; }
-              if(delta && delta.content){ lastTok = Date.now(); raw += delta.content; }
-              if(delta && (delta.content || delta.reasoning_content)){
-                if(!gotFirst){ gotFirst = true; setStatus(notes.length ? '<svg width="14" height="14" aria-hidden="true"><use href="#i-globe"/></svg>Read ' + notes.length + ' Wikipedia article' + (notes.length > 1 ? 's' : '') : ''); }
-                if(!frame) frame = requestAnimationFrame(paint);
-              }
-              if(stopFlag && !stopTimer && activeStop) activeStop();
-              // NOTE: on stop we deliberately do not `break` — the stream must finish
-              // so WebLLM releases its generation lock for the next message.
-            }
-          } catch(err){
-            if(String(err && err.message).indexOf('stopped responding') !== -1){
-              engineDirty = true; hardResetEngine(); eng = null;
-              if(!raw && !thinkRaw && !stopFlag) throw err;
-            } else throw err;
-          } finally {
-            clearInterval(wd); if(stopTimer) clearTimeout(stopTimer); activeStop = null;
+        /* Watchdog: if the engine goes quiet for too long, stop waiting and restart it,
+           instead of showing the typing dots forever. */
+        var lastTok = Date.now(), gotFirst = false, hung = false, rejectHang;
+        var hangP = new Promise(function(_, rej){ rejectHang = rej; }); hangP.catch(function(){});
+        var spin = '<span class="typing" style="padding:0"><i></i><i></i><i></i></span>';
+        var wd = setInterval(function(){
+          var quiet = (Date.now() - lastTok) / 1000;
+          if(!gotFirst && quiet > 5){
+            setStatus(spin + (quiet < 40 ? 'Reading your message… ' + Math.round(quiet) + 's'
+              : 'Still working… ' + Math.round(quiet) + 's — long chats are slower on this device. Starting a new chat helps.'));
           }
-        };
-
-        // Run once; if it stalled and produced nothing, rebuild the engine and try once more.
-        for(var attempt = 0; attempt < 2; attempt++){
-          try{
-            await runOnce();
-            if(raw || thinkRaw || stopFlag || attempt === 1) break;
-          }catch(err){
-            if(attempt === 1 || stopFlag) throw err;
+          if(!hung && quiet > (gotFirst ? WD_MID : WD_FIRST)){
+            hung = true;
+            interruptAI();
+            setTimeout(function(){ rejectHang(new Error('GazNano stopped responding')); }, 3000);
           }
-          engineDirty = false;
-          setStatus('<div class="load-card"><b>Restarting the brain…</b><p>That answer stalled, so I\'m starting a fresh engine and trying once more.</p><div class="bar"><i></i></div><small>Starting…</small></div>');
-          var rbar = status.querySelector('.bar i'), rsmall = status.querySelector('small');
-          await hardResetEngine();
-          await ensureEngine(function(p, txt){ rbar.style.width = Math.round((p || 0) * 100) + '%'; rsmall.textContent = txt || ''; });
-          eng = engine;
-          setStatus('');
+        }, 1000);
+        try{
+          var stream;
+          if(useServer){
+            stream = serverStream(t, params, fam === 'nano' ? th : undefined);
+          } else {
+            try{ await Promise.race([engine.resetChat(), new Promise(function(r){ setTimeout(r, 4000); })]); }catch(e){}
+            stream = await Promise.race([engine.chat.completions.create(params), hangP]);
+          }
+          var it = stream[Symbol.asyncIterator]();
+          while(true){
+            var step = await Promise.race([it.next(), hangP]);
+            if(step.done) break;
+            var chunk = step.value;
+            if(stopFlag){ interruptAI(); break; }
+            var d = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
+            if(d){
+              lastTok = Date.now();
+              if(!gotFirst){ gotFirst = true; setStatus(notes.length ? '<svg width="14" height="14" aria-hidden="true"><use href="#i-globe"/></svg>Read ' + notes.length + ' Wikipedia article' + (notes.length > 1 ? 's' : '') : ''); }
+              raw += d; if(!frame) frame = requestAnimationFrame(paint);
+            }
+          }
+        } catch(err){
+          if(String(err && err.message).indexOf('stopped responding') !== -1){ if(!useServer) hardResetEngine(); if(!raw) throw err; }
+          else throw err;
+        } finally {
+          clearInterval(wd);
         }
         if(frame) cancelAnimationFrame(frame);
-        if(hung && (raw || thinkRaw)) raw += '\n\n_(cut short — it was taking too long)_';
-        var parts = splitThinking(combineRaw());
+        if(hung && raw) raw += '\n\n_(cut short — it was taking too long)_';
+        var parts = splitThinking(raw);
         msg.content = parts.answer.trim() || (parts.think ? '_I thought about it but ran out of room to answer — try a lower Effort or a shorter question._' : '');
         if(parts.think){ msg.think = parts.think; msg.thinkSecs = Math.max(1, Math.round(((thinkEnd || Date.now()) - started) / 1000)); }
         if(stopFlag && msg.content) msg.content += '\n\n_(stopped)_';
@@ -1129,8 +1156,11 @@
       else {
         console.error(e);
         var m = String(e && e.message || e);
-        if(/memory|OOM|allocate|device (was )?lost|buffer/i.test(m)) hardResetEngine();
-        var hint = /stopped responding/i.test(m) ? 'GazNano 2 stopped responding — your graphics chip probably ran out of memory. I\'ve restarted the engine. Try again, start a <b>new chat</b> (long chats are heavier), or pick a smaller model.'
+        if(e && e.serverDown) serverDown();
+        else if(!(e && e.serverMsg) && /memory|OOM|allocate|device (was )?lost|buffer/i.test(m)) hardResetEngine();
+        var hint = e && e.serverDown ? 'The GazChat server is offline right now. ' + (gpu.webgpu ? 'I\'ve switched to running models <b>on this device</b> — press Try again.' : 'Please try again later.')
+                 : e && e.serverMsg ? esc(m)
+                 : /stopped responding/i.test(m) ? 'GazNano 2 stopped responding — your graphics chip probably ran out of memory. I\'ve restarted the engine. Try again, start a <b>new chat</b> (long chats are heavier), or pick a smaller model.'
                  : /memory|OOM|allocate|device (was )?lost|buffer/i.test(m) ? 'Your device ran out of graphics memory. Try a smaller model like <b>Fast</b>.'
                  : /fetch|network|Failed to load|import|on 'Cache'|Request failed/i.test(m) ? 'Couldn\'t download the brain. Check your internet connection (and that Hugging Face isn\'t blocked on this network, e.g. school Wi-Fi), then try again.'
                  : 'Something went wrong. Try again, or switch to the <b>Fast</b> brain.';
@@ -1159,7 +1189,7 @@
   // Phones: Enter adds a new line (tap the send button). Everything else: Enter sends, Shift+Enter = new line.
   var isPhone = /Android.+Mobile|iPhone|iPod/i.test(navigator.userAgent);
   function sendNow(){
-    if(busy){ requestStop(); return; }
+    if(busy){ stopFlag = true; interruptAI(); return; }
     var t = input.value.trim();
     if(!t){ input.focus(); return; }
     input.value = ''; grow(); ask(t);
@@ -1241,13 +1271,14 @@
   var menuPanel = 'main', cachedSet = {}, cacheChecked = false;
   function chev(cls){ return '<svg class="' + cls + '" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg>'; }
   function pickHtml(k){
-    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(k), pills = '';
+    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(k), pills = '', srv = onServer(k), usable = srv || gpu.webgpu;
     if(out) pills += '<span class="mpill out">Used up today</span>';
-    else if(k === recommendedTier() && gpu.ok) pills += '<span class="mpill rec">Best for this device</span>';
+    else if(k === recommendedTier() && gpu.ok) pills += '<span class="mpill rec">' + (gpu.server ? 'Recommended' : 'Best for this device') + '</span>';
     else if(t.badge) pills += '<span class="mpill">' + t.badge + '</span>';
-    if(cachedSet[k]) pills += '<span class="mpill ok">Downloaded</span>';
+    if(srv) pills += '<span class="mpill ok">Server</span>';
+    else if(cachedSet[k]) pills += '<span class="mpill ok">Downloaded</span>';
     var ico = t.group === 'more' ? '<svg class="ico" aria-hidden="true"><use href="#' + avatarFor(t) + '"/></svg>' : '';
-    return '<button type="button" class="mi" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (gpu.ok && !out ? '' : ' disabled') + '>' + ico +
+    return '<button type="button" class="mi" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (usable && !out ? '' : ' disabled') + '>' + ico +
       '<span class="t"><span class="n">' + esc(t.name) + pills + '</span><span class="d">' + esc(t.tagline) +
       (gpu.ok ? ' · ' + (out ? 'resets at midnight' : fmtDur(leftSecs(k)) + ' left today') : '') + '</span></span>' +
       (sel ? '<svg class="chk" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>' : '') + '</button>';
@@ -1260,7 +1291,7 @@
         '<button type="button" class="mi" data-panel="effort"><span class="t"><span class="n">Effort</span></span><span class="val">' + effortName + '</span>' + chev('rt') + '</button>' +
         '<button type="button" class="mi" data-panel="more"><span class="t"><span class="n">More models</span><span class="d">Coding, maths, writing and lightweight</span></span>' +
           (cur.group === 'more' ? '<span class="val">' + esc(cur.name) + '</span>' : '') + chev('rt') + '</button>' +
-        '<div class="mfoot">' + (gpu.ok ? 'Bigger models are smarter but need a stronger computer. Each downloads once, then runs privately on this device. <button type="button" data-usage>See today\'s usage</button>'
+        '<div class="mfoot">' + (gpu.server ? '<b>Running on the GazChat server</b> — nothing to download. Models marked Server answer straight away. <button type="button" data-usage>See today\'s usage</button>' : gpu.ok ? 'Bigger models are smarter but need a stronger computer. Each downloads once, then runs privately on this device. <button type="button" data-usage>See today\'s usage</button>'
           : '<b>Lite mode:</b> ' + esc(gpu.reason || 'this browser can\'t run AI models.') + ' GazNano 2 can still answer facts from Wikipedia and do maths.') + '</div>';
     } else if(menuPanel === 'effort'){
       html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>Effort</div>' +
@@ -1271,12 +1302,12 @@
     } else {
       html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>More models</div>' +
         MORE_GROUPS.map(function(g){ return '<div class="msec">' + g[0] + '</div>' + g[1].map(pickHtml).join(''); }).join('') +
-        '<div class="mfoot">Spark is built on Qwen2.5-Coder, Ponder on DeepSeek-R1, Quill on Meta\'s Llama 3.2, and Pocket and GazNano 2 on Alibaba\'s Qwen — all free, open models running on your device.</div>';
+        '<div class="mfoot">Spark is built on Qwen2.5-Coder, Ponder on DeepSeek-R1, Quill on Meta\'s Llama 3.2, and Pocket and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
     }
     m.innerHTML = html;
   }
   async function checkCached(){
-    if(cacheChecked || !gpu.ok) return; cacheChecked = true;
+    if(cacheChecked || !gpu.webgpu) return; cacheChecked = true;
     try{
       var w = await getWebLLM();
       await Promise.all(Object.keys(TIERS).map(async function(k){ try{ if(await w.hasModelInCache(modelId(TIERS[k]))) cachedSet[k] = true; }catch(e){} }));
@@ -1323,7 +1354,7 @@
     try{
       var w = await getWebLLM();
       for(var k in TIERS){ try{ await w.deleteModelAllInfoInCache(TIERS[k].f16); await w.deleteModelAllInfoInCache(TIERS[k].f32); }catch(e){} }
-      hardResetEngine();
+      if(engine){ try{ await engine.unload(); }catch(e){} } engine = null; loadedModel = null; setDot('');
       toast('Downloaded brains deleted');
     }catch(e){ toast('Nothing to delete'); }
   });
@@ -1358,7 +1389,7 @@
 
   // Global shortcuts
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && busy){ requestStop(); }
+    if(e.key === 'Escape' && busy){ stopFlag = true; interruptAI(); }
     if((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'o'){ e.preventDefault(); newChat(); }
   });
 
@@ -1368,11 +1399,11 @@
   applyTheme(); syncToggles(); grow(); refreshUsageUI();
   if(chats.length && chats[0].messages.length === 0) currentId = chats[0].id;
   renderChatList(); renderThread();
-  checkGpu().then(function(){ updateTierUI(); refreshUsageUI(); if(!gpu.ok) setDot(''); });
+  checkGpu().then(function(){ updateTierUI(); refreshUsageUI(); if(!gpu.ok) setDot(''); else if(gpu.server) setDot('ok'); });
   if(!matchMedia('(pointer:coarse)').matches) input.focus();
 
   // Expose pure helpers for testing
-  window.__gn2 = { setWatchdog: function(a, b){ WD_FIRST = a; WD_MID = b; }, usage: function(){ return usage; }, isOut: isOut, leftSecs: leftSecs, fmtDur: fmtDur, renderMd: renderMd, splitThinking: splitThinking, safeMath: safeMath, mathFromText: mathFromText, shouldLookUp: shouldLookUp, searchQuery: searchQuery };
+  window.__gn2 = { setWatchdog: function(a, b){ WD_FIRST = a; WD_MID = b; }, usage: function(){ return usage; }, isOut: isOut, leftSecs: leftSecs, fmtDur: fmtDur, renderMd: renderMd, splitThinking: splitThinking, server: function(){ return server; }, gpu: function(){ return gpu; }, safeMath: safeMath, mathFromText: mathFromText, shouldLookUp: shouldLookUp, searchQuery: searchQuery };
   })();
   </script>
 </body>
