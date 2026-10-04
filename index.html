@@ -737,7 +737,11 @@
   var usage = load('gn2.usage2', null);
   if(!usage || typeof usage.pct !== 'number') usage = { start: null, pct: 0, msgs: 0 };
   function saveUsage(){ store('gn2.usage2', usage); }
+  /* Always read the saved copy first, so every open tab shares one meter and one reset time. */
+  function syncUsage(){ var u = load('gn2.usage2', null); if(u && typeof u.pct === 'number') usage = u; }
+  window.addEventListener('storage', function(e){ if(e.key === 'gn2.usage2'){ syncUsage(); refreshUsageUI(); } });
   function rollover(){
+    syncUsage();
     if(usage.start && Date.now() >= usage.start + WINDOW_MS){ usage = { start: null, pct: 0, msgs: 0 }; saveUsage(); refreshUsageUI(); }
   }
   function usedPct(){ rollover(); return usage.pct; }
