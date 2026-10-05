@@ -418,20 +418,20 @@
   var server = { checked:false, ok:false, url:'', models:{} }, serverCtrl = null;
   var TIERS = {
     // Gizmo — the best model, runs on the GazChat server only
-    gizmo:  { key:'gizmo',  name:'Gizmo',  family:'nano', own:true, serverOnly:true, group:'main', hours:2, cost:8, gpu:'Server', tagline:'Our best model — for the hardest questions', badge:'Best' },
+    gizmo:  { key:'gizmo',  name:'Gizmo',  family:'nano', own:true, serverOnly:true, group:'main', hours:2, cost:6.5, gpu:'Server', tagline:'Our best model — for the hardest questions', badge:'Best' },
     // GazNano 2 — everyday chat (Alibaba Qwen 3.5)
-    fast:   { key:'fast',   name:'Fast',   family:'nano', group:'main', hours:10, cost:1, f16:'Qwen3.5-0.8B-q4f16_1-MLC', f32:'Qwen3.5-0.8B-q4f32_1-MLC', gpu:'~1.6 GB', tagline:'Quickest answers · works on phones' },
-    smart:  { key:'smart',  name:'Smart',  family:'nano', group:'main', hours:10, cost:1.5, f16:'Qwen3.5-2B-q4f16_1-MLC',   f32:'Qwen3.5-2B-q4f32_1-MLC',   gpu:'~2.3 GB', tagline:'Best for everyday chats and homework' },
-    genius: { key:'genius', name:'Genius', family:'nano', group:'main', hours:2, cost:3,  f16:'Qwen3.5-4B-q4f16_1-MLC',   f32:'Qwen3.5-4B-q4f32_1-MLC',   gpu:'~3.9 GB', tagline:'For complex questions and longer answers', badge:'Good graphics' },
-    max:    { key:'max',    name:'Max',    family:'nano', group:'main', hours:2, cost:5,  f16:'Qwen3.5-9B-q4f16_1-MLC',   f32:'Qwen3.5-9B-q4f32_1-MLC',   gpu:'~6.4 GB', tagline:'For your toughest challenges', badge:'Gaming PC' },
+    fast:   { key:'fast',   name:'Fast',   family:'nano', group:'main', hours:10, cost:0.8, f16:'Qwen3.5-0.8B-q4f16_1-MLC', f32:'Qwen3.5-0.8B-q4f32_1-MLC', gpu:'~1.6 GB', tagline:'Quickest answers · works on phones' },
+    smart:  { key:'smart',  name:'Smart',  family:'nano', group:'main', hours:10, cost:1.2, f16:'Qwen3.5-2B-q4f16_1-MLC',   f32:'Qwen3.5-2B-q4f32_1-MLC',   gpu:'~2.3 GB', tagline:'Best for everyday chats and homework' },
+    genius: { key:'genius', name:'Genius', family:'nano', group:'main', hours:2, cost:2.4,  f16:'Qwen3.5-4B-q4f16_1-MLC',   f32:'Qwen3.5-4B-q4f32_1-MLC',   gpu:'~3.9 GB', tagline:'For complex questions and longer answers', badge:'Good graphics' },
+    max:    { key:'max',    name:'Max',    family:'nano', group:'main', hours:2, cost:4,  f16:'Qwen3.5-9B-q4f16_1-MLC',   f32:'Qwen3.5-9B-q4f32_1-MLC',   gpu:'~6.4 GB', tagline:'For your toughest challenges', badge:'Gaming PC' },
     // More models — specialists
-    spark:      { key:'spark',      name:'Spark 1',      family:'code',   coder:true, group:'more', hours:2, cost:4,  f16:'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-7B-Instruct-q4f32_1-MLC', gpu:'~5.1 GB', tagline:'Writes, explains and fixes code', badge:'Gaming PC' },
-    sparkmini:  { key:'sparkmini',  name:'Spark 1 Mini', family:'code',   coder:true, mini:true, group:'more', hours:10, cost:1.5, f16:'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-3B-Instruct-q4f32_1-MLC', gpu:'~2.5 GB', tagline:'Coding help on everyday laptops' },
+    spark:      { key:'spark',      name:'Spark 1',      family:'code',   coder:true, group:'more', hours:2, cost:3.2,  f16:'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-7B-Instruct-q4f32_1-MLC', gpu:'~5.1 GB', tagline:'Writes, explains and fixes code', badge:'Gaming PC' },
+    sparkmini:  { key:'sparkmini',  name:'Spark 1 Mini', family:'code',   coder:true, mini:true, group:'more', hours:10, cost:1.2, f16:'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-3B-Instruct-q4f32_1-MLC', gpu:'~2.5 GB', tagline:'Coding help on everyday laptops' },
 
-    pocket:     { key:'pocket',     name:'Pocket',       family:'tiny',   group:'more', hours:10, cost:0.5, f16:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', gpu:'~0.9 GB', tagline:'Tiny and quick for older devices' }
+    mobile:     { key:'mobile',     name:'Mobile',       family:'tiny',   group:'more', hours:10, cost:0.35, f16:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', gpu:'~0.9 GB', tagline:'Tiny and quick for older devices' }
   };
   var MAIN_ORDER = ['gizmo', 'max', 'genius', 'smart', 'fast'];
-  var MORE_GROUPS = [['Coding', ['spark', 'sparkmini']], ['Lightweight', ['pocket']]];
+  var MORE_GROUPS = [['Coding', ['spark', 'sparkmini']], ['Lightweight', ['mobile']]];
   var EFFORTS = [['low', 'Low', 'Short, quick answers'], ['medium', 'Medium', 'The right length for each question'], ['high', 'High', 'Thinks step by step first — slower but smarter, and uses more of your allowance']];
   function displayName(t){ return t.family === 'nano' && !t.own ? 'GazNano 2' : t.name; }
   function avatarFor(t){ return !t ? 'logo' : t.family === 'code' ? 'spark' : 'logo'; }
@@ -673,6 +673,7 @@
     return gpu;
   }
   function recommendedTier(){ if(gpu.server && !gpu.webgpu && server.models.smart) return 'smart'; return gpu.mobile || (gpu.maxBuf && gpu.maxBuf < 1073741824) ? 'fast' : 'smart'; }
+  if(prefs.tier === 'pocket') prefs.tier = 'mobile';
   function tier(){ return TIERS[prefs.tier] || TIERS[recommendedTier()]; }
   function modelId(t){ return gpu.f16 ? t.f16 : t.f32; }
 
@@ -750,8 +751,8 @@
   function resetClock(){ var d = new Date(Date.now() + resetSecs() * 1000); return d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }); }
   function baseCost(k){ return (TIERS[k] && TIERS[k].cost) || 1; }
   function costFor(k, chars){
-    var len = Math.min(2, Math.max(0.6, 0.6 + (chars || 0) / 2500));
-    return Math.round(baseCost(k) * len * (prefs.effort === 'high' ? 1.5 : 1) * 10) / 10;
+    var len = Math.min(1.7, Math.max(0.5, 0.5 + (chars || 0) / 3000));
+    return Math.round(baseCost(k) * len * (prefs.effort === 'high' ? 1.3 : 1) * 10) / 10;
   }
   function charge(k, chars){
     rollover();
@@ -790,7 +791,7 @@
   }
   function costDots(k){ var c = baseCost(k), n = c <= 1 ? 1 : c <= 2 ? 2 : c <= 4 ? 3 : c <= 6 ? 4 : 5, h = ''; for(var i = 0; i < 5; i++) h += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return h; }
   function limitNote(k){
-    return { text: '**You\'ve used 100% of your GazChat allowance.** You can chat again in ' + fmtDur(resetSecs()) + ' (at ' + resetClock() + ').\n\nTip: smaller models like Fast and Pocket use less of your allowance, so it lasts longer.', others: [] };
+    return { text: '**You\'ve used 100% of your GazChat allowance.** You can chat again in ' + fmtDur(resetSecs()) + ' (at ' + resetClock() + ').\n\nTip: smaller models like Fast and Mobile use less of your allowance, so it lasts longer.', others: [] };
   }
 
   var workerRef = null, WD_FIRST = 150, WD_MID = 45;   // watchdog limits in seconds
@@ -872,7 +873,7 @@
     var now = new Date();
     var style = effortStyle() + (t.family === 'tiny' ? ' Keep answers brief.' : '');
     return [
-      t.family === 'tiny' ? 'You are Pocket, a small, friendly AI assistant made by GazStudios. You run privately inside the user\'s web browser.'
+      t.family === 'tiny' ? 'You are Mobile, a small, friendly AI assistant made by GazStudios. You run privately inside the user\'s web browser.'
                           : t.own ? 'You are Gizmo, the most capable AI assistant made by GazStudios. Think carefully and give expert, accurate, well-organised answers.'
                           : 'You are GazNano 2, a friendly and clever AI assistant made by GazStudios. You run privately inside the user\'s web browser.',
       // Date only (no clock time): keeping this text identical between messages lets the engine work faster.
@@ -990,7 +991,7 @@
     $('modelBtnLabel').textContent = lite ? 'Lite mode' : fam === 'nano' ? t.name : t.name;
     $('input').placeholder = lite ? 'Message GazNano 2…' : {
       code: 'Ask Spark 1 to write, explain or fix code…', reason: 'Give ' + t.name + ' a maths problem or puzzle…',
-      write: 'What should Quill help you write?', tiny: 'Message Pocket…' }[fam] || 'Message GazNano 2…';
+      write: 'What should Quill help you write?', tiny: 'Message Mobile…' }[fam] || 'Message GazNano 2…';
     $('lookupToggle').hidden = fam === 'code';
   }
 
@@ -1318,7 +1319,7 @@
     } else {
       html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>More models</div>' +
         MORE_GROUPS.map(function(g){ return '<div class="msec">' + g[0] + '</div>' + g[1].map(pickHtml).join(''); }).join('') +
-        '<div class="mfoot">Spark is built on Qwen2.5-Coder, and Gizmo, Pocket and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
+        '<div class="mfoot">Spark is built on Qwen2.5-Coder, and Gizmo, Mobile and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
     }
     m.innerHTML = html;
   }
