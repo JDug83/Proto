@@ -1319,7 +1319,7 @@
     } else {
       html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>More models</div>' +
         MORE_GROUPS.map(function(g){ return '<div class="msec">' + g[0] + '</div>' + g[1].map(pickHtml).join(''); }).join('') +
-        '<div class="mfoot">Spark is built on Qwen2.5-Coder, and Gizmo, Mobile and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
+        '<div class="mfoot">Gizmo is built on Google\'s Gemma 4, Spark 1 uses Ornith 1.5 on the GazChat server (Qwen2.5-Coder when it runs on your device), and Mobile and GazNano 2 on Alibaba\'s Qwen — all free, open models running on the GazChat server or your device.</div>';
     }
     m.innerHTML = html;
   }
