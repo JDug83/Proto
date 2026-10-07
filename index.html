@@ -203,59 +203,13 @@
     .empty h1 em{ font-style:normal; color:var(--glow); }
     .empty p{ margin:0; color:var(--ink-2); max-width:34rem; }
 
-    /* ---------- Composer (ChatGPT-style Design & Middle Positioning) ---------- */
-    .composer-wrap{ 
-      padding:0 16px calc(14px + env(safe-area-inset-bottom)); 
-      background:linear-gradient(transparent, var(--bg) 35%); 
-      transition:transform .3s var(--ease), padding .3s var(--ease);
-      width:100%;
-    }
-    
-    /* When in empty state, center the composer container vertically in the viewport */
-    .main.is-empty-state .thread{
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-    }
-    .main.is-empty-state .empty{
-      padding:0 20px 24px;
-      margin-top:auto;
-    }
-    .main.is-empty-state .composer-wrap{
-      margin-bottom:auto;
-      padding-top:12px;
-      background:transparent;
-    }
-
-    .composer{ 
-      max-width:780px; 
-      margin:0 auto; 
-      border:1px solid color-mix(in srgb, var(--line) 85%, #fff 15%); 
-      background:var(--panel); 
-      border-radius:26px; 
-      padding:12px 14px 10px 18px; 
-      box-shadow:0 8px 30px -8px rgba(0,0,0,.35), var(--shadow); 
-      transition:border-color .2s, box-shadow .2s; 
-    }
-    .composer:focus-within{ 
-      border-color:color-mix(in srgb, var(--blue-hi) 60%, var(--line)); 
-      box-shadow:0 12px 40px -10px rgba(0,0,0,.5);
-    }
-    .composer textarea{ 
-      width:100%; 
-      border:0; 
-      background:transparent; 
-      resize:none; 
-      outline:none; 
-      font-size:16px; 
-      line-height:1.55; 
-      max-height:220px; 
-      min-height:28px; 
-      padding:2px 0 6px; 
-      color:var(--ink);
-    }
+    /* ---------- Composer ---------- */
+    .composer-wrap{ padding:0 16px calc(12px + env(safe-area-inset-bottom)); background:linear-gradient(transparent, var(--bg) 30%); }
+    .composer{ max-width:780px; margin:0 auto; border:1px solid var(--line); background:var(--panel); border-radius:20px; padding:10px 10px 8px 16px; box-shadow:var(--shadow); transition:border-color .15s; }
+    .composer:focus-within{ border-color:var(--blue-hi); }
+    .composer textarea{ width:100%; border:0; background:transparent; resize:none; outline:none; font-size:16px; line-height:1.5; max-height:200px; min-height:26px; padding:4px 0; }
     .composer textarea::placeholder{ color:var(--ink-3); }
-    .composer-row{ display:flex; align-items:center; gap:8px; margin-top:4px; }
+    .composer-row{ display:flex; align-items:center; gap:6px; margin-top:4px; }
     .attach-row{ display:flex; gap:8px; flex-wrap:wrap; padding:2px 0 8px; }
     .attach-row .thumb{ position:relative; width:64px; height:64px; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:var(--bg-2); }
     .attach-row .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
@@ -264,48 +218,14 @@
     .msg.user .pics{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; margin-bottom:6px; }
     .msg.user .pics img{ width:120px; height:120px; object-fit:cover; border-radius:14px; border:1px solid var(--line); }
     .msg.user{ flex-direction:column; align-items:flex-end; }
-    
-    .toggle{ display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:0 12px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-2); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+    .toggle{ display:inline-flex; align-items:center; gap:6px; min-height:34px; padding:0 12px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-2); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
     .toggle:hover{ color:var(--ink); border-color:var(--ink-3); }
     .toggle[aria-pressed="true"]{ background:color-mix(in srgb,var(--blue) 18%,transparent); border-color:var(--blue-hi); color:var(--glow); }
     .composer-row .spacer{ flex:1; }
-
-    /* ChatGPT styled round pill Send & Mic buttons */
-    .send{ 
-      width:34px; 
-      height:34px; 
-      border-radius:50%; 
-      border:0; 
-      background:var(--ink); 
-      color:var(--bg); 
-      display:grid; 
-      place-items:center; 
-      cursor:pointer; 
-      transition:background .2s, color .2s, transform .15s var(--ease), opacity .2s; 
-    }
-    .send:hover{ opacity:.9; transform:scale(1.04); }
-    .send.is-empty{ 
-      background:var(--panel-2); 
-      color:var(--ink-3); 
-      cursor:default;
-      transform:none;
-    }
-    .send.stop{ 
-      background:var(--ink); 
-      color:var(--bg); 
-      border-radius:50%;
-    }
-    .composer-row .icon-btn{ 
-      width:34px; 
-      height:34px; 
-      border-radius:50%; 
-      border:1px solid transparent; 
-      transition:background .15s, color .15s, border-color .15s; 
-    }
-    .composer-row .icon-btn:hover{ 
-      background:var(--panel-2); 
-      border-color:var(--line); 
-    }
+    .send{ width:40px; height:40px; border-radius:12px; border:0; background:var(--blue); color:#fff; display:grid; place-items:center; cursor:pointer; transition:background .15s, transform .15s; }
+    .send:hover{ background:var(--blue-hi); }
+    .send.is-empty{ background:var(--panel-2); color:var(--ink-3); }
+    .send.stop{ background:var(--ink); color:var(--bg); }
     .disclaimer{ max-width:780px; margin:8px auto 0; text-align:center; font-size:12px; color:var(--ink-3); }
 
     /* ---------- Dialogs ---------- */
@@ -380,195 +300,37 @@
       .hide-sm{ display:none !important; }
     }
     @media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
- /* Compact selector inside the message box */
-.model-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: transparent;
-  color: var(--ink-2);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s, border-color .15s;
-}
-
-.model-btn:hover,
-.model-btn[aria-expanded="true"] {
-  background: var(--panel-2);
-  border-color: var(--line);
-  color: var(--ink);
-}
-
-.model-btn > svg {
-  opacity: .65;
-  transition: transform .15s;
-}
-
-.model-btn[aria-expanded="true"] > svg {
-  transform: rotate(180deg);
-}
-
-/* Dropdown panel */
-.mmenu {
-  width: min(370px, calc(100vw - 28px));
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--panel);
-  box-shadow: 0 18px 55px rgba(0, 0, 0, .25);
-  max-height: min(65dvh, 540px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-
-/* Section headings */
-.msec {
-  padding: 12px 12px 8px;
-  color: var(--ink-3);
-  font: 600 10px var(--mono);
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-/* Each model / menu option */
-.mi {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 3px;
-  border: 1px solid transparent;
-  border-radius: 13px;
-  background: transparent;
-  text-align: left;
-  transition: background .15s, border-color .15s;
-}
-
-.mi:hover,
-.mi:focus-visible {
-  background: var(--panel-2);
-}
-
-/* Selected model */
-.mi[aria-checked="true"] {
-  background: color-mix(in srgb, var(--blue) 12%, var(--panel));
-  border-color: color-mix(in srgb, var(--blue-hi) 55%, var(--line));
-}
-
-.mi[aria-checked="true"] .n,
-.mi .chk {
-  color: var(--glow);
-}
-
-.mi .t {
-  flex: 1;
-  min-width: 0;
-}
-
-.mi .n {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.mi .d {
-  display: block;
-  margin-top: 4px;
-  color: var(--ink-2);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.mi .ico {
-  width: 28px;
-  height: 28px;
-}
-
-.mi .val {
-  color: var(--ink-2);
-  font-size: 12px;
-}
-
-/* Small labels: Server, Downloaded, Recommended */
-.mpill {
-  padding: 2px 6px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: var(--bg-2);
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.mpill.rec {
-  color: var(--glow);
-}
-
-.mpill.ok {
-  color: var(--ok);
-}
-
-.mpill.out {
-  color: var(--err);
-}
-
-.mi:disabled {
-  opacity: .45;
-  cursor: not-allowed;
-}
-
-/* Dividers and explanatory text */
-.msep {
-  margin: 8px 12px;
-  background: var(--line);
-}
-
-.mfoot {
-  margin-top: 8px;
-  padding: 12px;
-  border-top: 1px solid var(--line);
-  color: var(--ink-2);
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-.mhead {
-  padding: 4px 6px 8px;
-  font-size: 14px;
-}
-
-/* Open below the box on the welcome screen */
-.main.welcome .mmenu {
-  top: calc(100% + 10px);
-  bottom: auto;
-  max-height: min(35dvh, 360px);
-}
-
-/* Keep the selector label compact on phones */
-@media (max-width: 480px) {
-  .model-btn {
-    min-width: 0;
-    max-width: 150px;
-    padding: 0 6px;
-  }
-
-  #modelBtnLabel {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
+    /* New chats: centre the welcome text and the complete composer together. */
+    .main.welcome{ overflow-y:auto; }
+    .main.welcome .top{ flex-shrink:0; position:sticky; top:0; z-index:35; }
+    .main.welcome .thread{ flex:0 0 auto; overflow:visible; margin-top:auto; }
+    .main.welcome .empty{ padding:28px 20px 24px; }
+    .main.welcome .msgs{ display:none; }
+    .main.welcome .composer-wrap{ flex:0 0 auto; width:100%; margin-bottom:auto; background:none; }
+    .main.welcome .mmenu{ bottom:auto; top:calc(100% + 8px); max-height:min(36dvh, 360px); }
+    @media (max-height:600px){
+      .main.welcome .empty{ padding:16px 16px; gap:8px; }
+      .main.welcome .empty .logo{ width:40px; height:40px; }
+      .main.welcome .empty h1{ font-size:26px; }
+      .main.welcome .empty p{ display:none; }
+    }
+    /* Compact composer, matching the requested reference layout. */
+    .main.welcome .empty{ padding:24px 20px; }
+    .main.welcome .empty .logo, .main.welcome .empty p{ display:none; }
+    .main.welcome .empty h1{ font-size:clamp(24px,4vw,32px); font-weight:600; }
+    .composer{ border-radius:26px; padding:16px 16px 10px; }
+    .composer textarea{ min-height:64px; }
+    .composer-row{ gap:8px; }
+    .model-btn{ min-height:36px; padding:0 8px; border:0; background:transparent; border-radius:10px; font-size:13px; font-weight:500; color:var(--ink-2); }
+    .model-btn:hover{ background:var(--panel-2); color:var(--ink); }
+    .send{ border-radius:50%; }
+    .main.welcome .mmenu{ max-height:min(35dvh,320px); }
+    @media (max-width:480px){
+      .composer-row{ gap:4px; }
+      .model-btn{ max-width:145px; min-width:0; }
+      #modelBtnLabel{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      #lookupToggle span{ display:none; }
+    }
   </style>
 </head>
 <body>
@@ -616,7 +378,7 @@
     </aside>
     <div class="scrim" id="scrim"></div>
 
-    <main class="main" id="mainArea">
+    <main class="main welcome" id="mainPanel">
       <header class="top">
         <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open chats"><svg width="22" height="22" aria-hidden="true"><use href="#i-menu"/></svg></button>
         <div class="top-title"><span class="dot" id="statusDot"></span><span id="brandLabel">GazNano 2</span> <span class="tier" id="tierLabel">Smart</span></div>
@@ -628,8 +390,8 @@
       <div class="thread" id="thread">
         <div class="empty" id="empty">
           <svg class="logo" aria-hidden="true"><use href="#logo"/></svg>
-          <h1>Hi, I'm <em>GazNano 2</em>.<br>What can I help with?</h1>
-          <p>Ask me anything — facts, homework, writing or code. I run privately in your browser and look things up on Wikipedia when I need to.</p>
+          <h1>What can I help with?</h1>
+          <p>Ask me anything — facts, homework, writing or code. Choose a model to chat on this device or the Gazchat server. Turn on Look up to use Wikipedia.</p>
         </div>
         <div class="msgs" id="msgs" aria-live="polite"></div>
       </div>
@@ -1090,11 +852,15 @@
 
   /* =====================================================================
      USAGE ALLOWANCE (percentage)
+     Everyone gets 100% every 5 hours. The 5 hours start with your first message.
+     Each answer uses some of it: bigger models use more, smaller ones less,
+     and longer answers / High effort use a bit more. At 100% you have to wait.
      ===================================================================== */
   var WINDOW_MS = 5 * 3600 * 1000;
   var usage = load('gn2.usage2', null);
   if(!usage || typeof usage.pct !== 'number') usage = { start: null, pct: 0, msgs: 0 };
   function saveUsage(){ store('gn2.usage2', usage); }
+  /* Always read the saved copy first, so every open tab shares one meter and one reset time. */
   function syncUsage(){ var u = load('gn2.usage2', null); if(u && typeof u.pct === 'number') usage = u; }
   window.addEventListener('storage', function(e){ if(e.key === 'gn2.usage2'){ syncUsage(); refreshUsageUI(); } });
   function rollover(){
@@ -1106,7 +872,10 @@
   function resetSecs(){ rollover(); return usage.start ? (usage.start + WINDOW_MS - Date.now()) / 1000 : WINDOW_MS / 1000; }
   function resetClock(){ var d = new Date(Date.now() + resetSecs() * 1000); return d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }); }
   function baseCost(k){ return (TIERS[k] && TIERS[k].cost) || 1; }
-  var FULL_WORK = 9000;
+  /* Like Claude: a quick normal chat uses very little, and harder work uses more - but one answer never
+     uses more than the model's maximum (Gizmo 6%). "Work" = the answer, its thinking, and how long the
+     conversation is (longer chats are more work for the model, because it re-reads them every time). */
+  var FULL_WORK = 9000;   // this much work = the model's maximum
   function costFor(k, w){
     if(typeof w === 'number') w = { answer: w };
     w = w || {};
@@ -1154,7 +923,9 @@
     return { text: '**You\'ve used 100% of your GazChat allowance.** You can chat again in ' + fmtDur(resetSecs()) + ' (at ' + resetClock() + ').\n\nTip: smaller models like Fast and Mobile use less of your allowance, so it lasts longer.', others: [] };
   }
 
-  var workerRef = null, WD_FIRST = 150, WD_MID = 45;
+  var workerRef = null, WD_FIRST = 150, WD_MID = 45;   // watchdog limits in seconds
+  /* If the engine freezes (usually the graphics chip running out of memory), throw it away
+     completely so the next message starts with a fresh one. */
   function hardResetEngine(){
     try{ if(engine && engine.unload) engine.unload().catch(function(){}); }catch(e){}
     try{ if(workerRef) workerRef.terminate(); }catch(e){}
@@ -1194,6 +965,8 @@
     finally{ loading = null; }
   }
 
+  /* Pictures without a server: GazNano Vision (Microsoft's Phi-3.5 Vision) looks at the picture on this
+     device and writes a description, then the chosen model answers using it. */
   var PIC_PROMPT = 'Describe this picture in detail so someone who can\'t see it could answer questions about it. Copy out any writing, numbers, code or maths in it exactly. Don\'t add opinions.';
   function visionId(){ return gpu.f16 ? 'Phi-3.5-vision-instruct-q4f16_1-MLC' : 'Phi-3.5-vision-instruct-q4f32_1-MLC'; }
   async function describeOnDevice(pics, onProgress){
@@ -1223,6 +996,7 @@
     ].filter(Boolean).join('\n');
   }
 
+
   function quillPrompt(){
     return [
       'You are Quill, the writing model from GazStudios. You are available through the Gazchat app.',
@@ -1236,6 +1010,11 @@
   function effortStyle(){
     return { short:'Keep answers short and clear.', normal:'Match answer length to the task.', detailed:'Give a detailed answer with useful examples.' }[prefs.answerLength || 'normal'];
   }
+  function legacyEffortStyle(){
+    return prefs.effort === 'low' ? 'Keep answers short and simple — a few sentences, plain words.'
+         : prefs.effort === 'high' ? 'Give thorough, well-structured answers with examples where useful.'
+         : 'Match the length to the question: short for simple questions, more detail for complex ones.';
+  }
 
   function systemPrompt(){
     var t = tier();
@@ -1246,6 +1025,7 @@
       t.family === 'tiny' ? 'You are Mobile, a small, friendly AI assistant made by GazStudios. You are available through the Gazchat app.'
                           : t.own ? 'You are Gizmo, the most capable AI assistant made by GazStudios. Think carefully and give expert, accurate, well-organised answers.'
                           : 'You are GazNano 2, a friendly and clever AI assistant made by GazStudios. You are available through the Gazchat app.',
+      // Date only (no clock time): keeping this text identical between messages lets the engine work faster.
       'Today is ' + now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) + '.',
       prefs.name ? 'The user\'s name is ' + prefs.name + '.' : '',
       runtimePrivacy(),
@@ -1258,6 +1038,8 @@
     ].filter(Boolean).join('\n');
   }
 
+  // Developer settings: increase ONLY after checking the actual runtime context limit.
+  // These are application budgets, not declarations of model capacity.
   var CONTEXT_LIMITS = { device:4096, server:4096, serverByTier:{} };
   var contextNotice = '';
   function runtimePrivacy(){
@@ -1267,6 +1049,8 @@
   function contextLimit(){
     return onServer(tier().key) ? (CONTEXT_LIMITS.serverByTier[tier().key] || CONTEXT_LIMITS.server) : CONTEXT_LIMITS.device;
   }
+  // Deliberately conservative UTF-8 byte estimate. Use the model tokenizer on
+  // your server for exact accounting; this heuristic can omit history early.
   function estimatedTokens(text){ return new TextEncoder().encode(String(text || '')).length + 16; }
   function outputBudget(){
     var desired = { short:400, normal:tier().family === 'code' ? 1400 : 800, detailed:1800 }[prefs.answerLength || 'normal'];
@@ -1289,6 +1073,7 @@
         final += refs; budget -= estimatedTokens(refs);
       }
     }
+    // Keep whole user/assistant exchanges; never cut a code block in half.
     var previous = chat.messages.slice(0, -1).filter(function(m){ return !m.error; });
     var pairs = [], pair = null;
     previous.forEach(function(m){
@@ -1305,6 +1090,7 @@
     return [{ role:'system', content:sys }].concat(hist, [{ role:'user', content:final }]);
   }
 
+  /* Offline "Lite" answer when WebGPU isn't available */
   function liteAnswer(text, notes, calc){
     if(calc) return '**' + calc.expr.replace(/\*\*/g, '^').replace(/\*/g, '×').replace(/\//g, '÷') + ' = ' + calc.value.toLocaleString('en-GB', { maximumFractionDigits: 10 }) + '**';
     if(SMALLTALK.test(text)) return 'Hi' + (prefs.name ? ' ' + prefs.name : '') + '! On this device I\'m running in **Lite mode**, because the browser doesn\'t support WebGPU. I can still look things up and do maths. For full conversations, open GazNano 2 in Chrome or Edge on a computer.';
@@ -1319,16 +1105,6 @@
   /* =====================================================================
      RENDERING
      ===================================================================== */
-  function updateEmptyState(){
-    var c = current();
-    var isEmpty = !c || !c.messages.length;
-    var main = $('mainArea');
-    if(main){
-      main.classList.toggle('is-empty-state', isEmpty);
-    }
-    $('empty').hidden = !isEmpty;
-  }
-
   function renderChatList(){
     var list = $('chatList');
     if(!chats.length){ list.innerHTML = '<h4>Chats</h4><p style="margin:4px 10px;color:var(--ink-3);font-size:14px">Your chats will appear here.</p>'; return; }
@@ -1354,7 +1130,8 @@
     if(tt && avatarFor(tt) !== 'logo') el.querySelector('.avatar').innerHTML = '<use href="#' + avatarFor(tt) + '"/>';
     el.querySelector('.slot-tool').innerHTML = m.tool ? '<span class="tool-chip"><svg width="14" height="14" aria-hidden="true"><use href="#i-calc"/></svg>' + esc(m.tool) + '</span>' : '';
     el.querySelector('.slot-think').innerHTML = m.think ? '<details class="reasoning"><summary>Thought' + (m.thinkSecs ? ' for ' + m.thinkSecs + 's' : '') + '</summary><div class="r-body">' + esc(m.think) + '</div></details>' : '';
-    el.querySelector('.md').innerHTML = renderMd(m.content, m.sources) + '';
+    el.querySelector('.md').innerHTML = renderMd(m.content, m.sources) +
+      '';
     el.querySelector('.slot-sources').innerHTML = m.sources && m.sources.length ? '<div class="sources">' + m.sources.map(function(s, i){
       return '<a class="src" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer"><b>' + (i + 1) + '</b><span>' + esc(s.title) + ' · Wikipedia</span></a>'; }).join('') + '</div>' : '';
     el.querySelector('.actions').innerHTML =
@@ -1375,7 +1152,8 @@
   function renderThread(){
     var c = current(), box = $('msgs');
     box.innerHTML = '';
-    updateEmptyState();
+    $('empty').hidden = !!(c && c.messages.length);
+    $('mainPanel').classList.toggle('welcome', !(c && c.messages.length));
     if(!c) return;
     c.messages.forEach(function(m, i){
       if(m.role === 'user') box.appendChild(userEl(m.content, m.images));
@@ -1392,9 +1170,10 @@
   function scrollDown(force){ if(force || stick){ var t = $('thread'); requestAnimationFrame(function(){ t.scrollTop = t.scrollHeight; }); } }
   function updateTierUI(){
     var t = tier(), lite = gpu.checked && !gpu.ok, fam = lite ? 'nano' : t.family;
+    var label = { code:'Code', reason:'Maths & logic', write:'Writing', tiny:'Lightweight' }[fam];
     $('brandLabel').textContent = 'Gazchat';
     $('tierLabel').textContent = lite ? 'Lite · Wikipedia and maths' : t.name + ' · ' + (onServer(t.key) ? 'Gazchat server' : 'On this device');
-    $('modelBtnLabel').textContent = lite ? 'Lite mode' : fam === 'nano' ? t.name : t.name;
+    $('modelBtnLabel').textContent = lite ? 'Lite mode' : t.family === 'nano' && !t.own ? 'GazNano ' + t.name : t.name;
     $('input').placeholder = lite ? 'Message GazNano 2…' : {
       code: 'Ask Spark 1 to write, explain or fix code…', reason: 'Give ' + t.name + ' a maths problem or puzzle…',
       write: 'What should Quill help you write?', tiny: 'Message Mobile…' }[fam] || 'Message GazNano 2…';
@@ -1428,7 +1207,8 @@
       if(c.title === 'New chat') c.title = text.replace(/\s+/g, ' ').slice(0, 48);
       c.at = Date.now(); chats.sort(function(a, b){ return b.at - a.at; });
       saveChats(); renderChatList();
-      updateEmptyState();
+      $('empty').hidden = true;
+      $('mainPanel').classList.remove('welcome');
       $('msgs').appendChild(userEl(text, um.images));
     }
     var userMsg = c.messages[c.messages.length - 1];
@@ -1446,6 +1226,7 @@
       }
       await checkGpu(); updateTierUI();
 
+      // Daily allowance for this brain
       if(gpu.ok && isOut()){
         var ln = limitNote(t.key);
         msg.content = ln.text; msg.error = true; msg.limitOthers = ln.others; msg.tier = t.key;
@@ -1455,6 +1236,7 @@
         return;
       }
 
+      // Tools first
       var calc = mathFromText(text);
       if(calc) msg.tool = 'Calculator: ' + calc.expr + ' = ' + calc.value;
       var notes = [];
@@ -1468,6 +1250,7 @@
       if(stopFlag) throw new DOMException('Stopped', 'AbortError');
 
       var useServer = onServer(t.key);
+      // Pictures: send the ones on this message, or on a recent message (so follow-up questions still see them)
       var sendPics = null;
       for(var pi = c.messages.length - 1, seen = 0; pi >= 0 && seen < 5; pi--, seen++){
         var pm = c.messages[pi];
@@ -1479,6 +1262,7 @@
         }
       }
       if(!sendPics && userMsg.images && userMsg.images.length && !fullPics.get(userMsg)){
+        // An old chat reopened: only the small previews were kept, so use those
         sendPics = userMsg.images;
       }
       var picDesc = '';
@@ -1486,7 +1270,7 @@
         var picMsg = null;
         for(var pj = c.messages.length - 1, sn = 0; pj >= 0 && sn < 5; pj--, sn++){ if(c.messages[pj].role === 'user' && c.messages[pj].images){ picMsg = c.messages[pj]; break; } }
         if(picMsg && picMsg.picDesc){
-          picDesc = picMsg.picDesc;
+          picDesc = picMsg.picDesc;          // already looked at this picture earlier
         } else if(!gpu.webgpu){
           msg.content = '**This device can\'t look at pictures by itself**, and the GazChat server is offline right now. Try again later, or use Chrome or Edge on a computer.'; msg.error = true;
           c.messages.push(msg); saveChats(); el.dataset.idx = c.messages.indexOf(msg); fillAi(el, msg); markLast(); scrollDown(); setStatus('');
@@ -1509,7 +1293,7 @@
           }
           setStatus('');
         }
-        sendPics = null;
+        sendPics = null;   // the chosen model gets the description instead
       }
       if(!useServer && t.serverOnly && gpu.ok){
         msg.content = '**' + t.name + ' runs on the GazChat server, which is offline right now.** Pick another model and try again.'; msg.error = true;
@@ -1521,6 +1305,7 @@
         msg.content = liteAnswer(text, notes, calc);
         msg.tier = null;
       } else {
+        // Load the brain (first time downloads it)
         if(useServer){
           setStatus('<span class="typing" style="padding:0"><i></i><i></i><i></i></span>Sending to the GazChat server…');
         } else if(!engine || loadedModel !== modelId(t)){
@@ -1559,8 +1344,10 @@
           max_tokens: outputBudget()
         };
         if(contextNotice) toast(contextNotice);
-        if(fam === 'nano') params.extra_body = { enable_thinking: th };
+        if(fam === 'nano') params.extra_body = { enable_thinking: th };   // only Qwen 3.5 has a thinking switch
 
+        /* Watchdog: if the engine goes quiet for too long, stop waiting and restart it,
+           instead of showing the typing dots forever. */
         var lastTok = Date.now(), gotFirst = false, hung = false, rejectHang;
         var hangP = new Promise(function(_, rej){ rejectHang = rej; }); hangP.catch(function(){});
         var spin = '<span class="typing" style="padding:0"><i></i><i></i><i></i></span>';
@@ -1591,7 +1378,7 @@
             if(step.done) break;
             var chunk = step.value;
             if(stopFlag){ interruptAI(); break; }
-            if(chunk.ping !== undefined){
+            if(chunk.ping !== undefined){   // the server is still loading/thinking - it's alive
               lastTok = Date.now();
               if(!gotFirst && chunk.ping >= 3) setStatus(spin + t.name + (chunk.ping < 20 ? ' is getting ready on the GazChat server… ' : ' is working on the GazChat server — bigger models take a bit longer… ') + chunk.ping + 's');
               continue;
@@ -1645,7 +1432,7 @@
         setDot('err');
       }
     }finally{
-      setBusy(false); markLast(); updateEmptyState();
+      setBusy(false); markLast();
     }
   }
 
@@ -1661,8 +1448,9 @@
      UI WIRING
      ===================================================================== */
   var input = $('input');
-  function grow(){ input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 220) + 'px'; if(!busy) $('sendBtn').classList.toggle('is-empty', !input.value.trim()); }
+  function grow(){ input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 200) + 'px'; if(!busy) $('sendBtn').classList.toggle('is-empty', !input.value.trim()); }
   input.addEventListener('input', grow);
+  // Phones: Enter adds a new line (tap the send button). Everything else: Enter sends, Shift+Enter = new line.
   var isPhone = /Android.+Mobile|iPhone|iPod/i.test(navigator.userAgent);
   function sendNow(){
     if(loadingPictures){ toast('Wait for the picture to finish opening'); return; }
@@ -1675,6 +1463,7 @@
     input.value = ''; grow(); ask(t, false, pics);
   }
 
+  /* ---------- Pictures: paste, drag in, or press the picture button ---------- */
   var loadingPictures = 0;
   var pending = [], fullPics = new WeakMap(), MAX_PICS = 3;
   function shrink(img, max, quality){
@@ -1785,6 +1574,7 @@
     if(a.dataset.act === 'redo' && !busy){
       var prevUser = c.messages.slice(0, idx).reverse().find(function(x){ return x.role === 'user'; });
       if(!prevUser) return;
+      // Drop this answer (and anything after it), then regenerate
       c.messages = c.messages.slice(0, idx);
       saveChats(); renderThread();
       ask(prevUser.content, true);
@@ -1818,7 +1608,7 @@
     d.addEventListener('click', function(e){ if(e.target === d || e.target.closest('[data-close]')) d.close(); });
   });
 
-  /* ---------- Model menu ---------- */
+  /* ---------- Model menu (in the message bar) ---------- */
   var menuPanel = 'main', cachedSet = {}, cacheChecked = false;
   function chev(cls){ return '<svg class="' + cls + '" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg>'; }
   function pickHtml(k){
