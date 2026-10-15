@@ -1,16 +1,17 @@
 <!DOCTYPE html>
+
 <html lang="en-GB">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>Gazchat — GazStudios</title>
-  <meta name="description" content="Gazchat by GazStudios — chat with AI on your device or the Gazchat server. Get help with questions, homework and code.">
-  <meta name="theme-color" content="#070B1A">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232563EB'/%3E%3Crect x='3' y='3' width='58' height='58' rx='13' fill='none' stroke='%2360A5FA' stroke-opacity='.55' stroke-width='2'/%3E%3Cpath d='M44 22.5A15 15 0 1 0 47 34H33' fill='none' stroke='%23fff' stroke-width='7.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M50 6l2.4 5.6L58 14l-5.6 2.4L50 22l-2.4-5.6L42 14l5.6-2.4z' fill='%23BFE0FF'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" name="viewport"/>
+<title>Gizmo — GazStudios</title>
+<meta content="Gazchat by GazStudios — chat with AI on your device or the Gazchat server. Get help with questions, homework and code." name="description"/>
+<meta content="#f5f8f3" name="theme-color"/>
+<link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e6f0eb'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Arial' font-size='38' font-weight='700' fill='%23172b29'%3EG%3C/text%3E%3C/svg%3E" rel="icon" type="image/svg+xml"/>
+
+
+
+<script>
     /* Some launchers open pages as blob: or data: addresses. The AI library
        can't work out file locations from those, so point the page's base
        address at the real website instead. */
@@ -26,12 +27,8 @@
       }
     })();
   </script>
-  <script>
-    (function(){ var t=null; try{ t=JSON.parse(localStorage.getItem('gn2.prefs')||'{}').theme; }catch(e){}
-      if(!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', t); })();
-  </script>
-  <style>
+<script>document.documentElement.setAttribute('data-theme', 'light');</script>
+<style>
     :root{
       --bg:#070B1A; --bg-2:#0A1024; --panel:#0E1530; --panel-2:#152044; --line:#1F2B52;
       --ink:#EEF2FF; --ink-2:#A9B4D6; --ink-3:#7C88AE;
@@ -431,7 +428,7 @@
     html[data-theme="light"] body.gazchat-code .code-choice .d{ color:#526b4d; }
     html[data-theme="light"] body.gazchat-code .code-choice .mpill{ background:#e7f4df; border-color:#c5ddb9; color:#365314; }
 
-    .main.welcome .mmenu{ max-height:min(35dvh,320px); }
+    .main.welcome .mmenu{ max-height:min(55dvh, 440px); }
     @media (max-width:480px){
       .composer-row{ gap:4px; }
       .model-btn{ max-width:145px; min-width:0; }
@@ -495,166 +492,178 @@
     .composer-row .model-pill-compact{width:auto;margin-left:auto;padding:0 12px;gap:5px;border:0;border-radius:999px;background:var(--panel-2);min-height:36px;font-size:13px;}
     .model-pill-compact #modelEffortLabel{color:var(--ink-3);}
     .model-pill-compact>svg{color:var(--ink-3);}
-    .mmenu{width:min(286px,calc(100vw - 28px));padding:12px;border-radius:16px;}
-    .slide-title{display:flex;gap:6px;align-items:center;min-height:30px;font-size:14px;}
-    .slide-title strong{flex:1;text-align:center;font-weight:600;}
-    .slide-effort{border:0;background:transparent;color:var(--ink-3);font:inherit;padding:4px;cursor:pointer;border-radius:6px;}
-    .slide-effort:hover{color:var(--ink);background:var(--panel-2);}
-    .model-slider-track{margin-top:8px;}
-    .slide-description{margin:12px 0 0;font-size:12px;color:var(--ink-2);line-height:1.4;}
-    .slide-ends{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font-size:11px;color:var(--ink-3);}
+    .mmenu{width:min(280px,calc(100vw - 28px));padding:8px 6px;border-radius:18px;}
+    .mi.gm{padding:10px 14px 10px 12px;gap:12px;border-radius:12px;background:transparent;}
+    .mi.gm[aria-checked="true"]{background:transparent;}
+    .mi.gm:hover,.mi.gm:focus-visible{background:var(--panel-2);}
+    .mi.gm .gm-chk{width:18px;height:18px;display:grid;place-items:center;flex-shrink:0;color:var(--ink);}
+    .mi.gm .n{font-size:14px;font-weight:700;color:var(--ink);line-height:1.25;}
+    .mi.gm .d{font-size:13px;color:var(--ink-3);margin-top:2px;line-height:1.3;}
+    .mi.gm .gm-arr{color:var(--ink-2);font-size:11px;margin-left:auto;padding-left:6px;}
+    .gm-sep{height:1px;background:var(--line);margin:6px 4px;}
   </style>
-</head>
+<style data-source="gazstudios-minimal">
+html:root,html[data-theme="light"],html[data-theme="light"] body.gazchat-code{
+--bg:#f5f8f3;--bg-2:#edf3ed;--panel:#fcfdfb;--panel-2:#e6f0eb;--line:#dce5de;
+--ink:#172b29;--ink-2:#526960;--ink-3:#62766b;--blue:#40594e;--blue-hi:#30483e;--glow:#40594e;
+--user:#e6f0eb;--user-ink:#172b29;--code:#eff4ef;--shadow:none;
+--display:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;--mono:ui-monospace,Consolas,monospace}
+html[data-theme="dark"],html[data-theme="dark"] body.gazchat-code{
+--bg:#17231e;--bg-2:#142019;--panel:#1e2c24;--panel-2:#293d31;--line:#344b3e;
+--ink:#edf4ec;--ink-2:#c0d2c4;--ink-3:#9cb4a4;--blue:#b8d3c6;--blue-hi:#d4e5dd;--glow:#b8d3c6;--user:#293d31;--user-ink:#edf4ec;--code:#142019;--shadow:none;
+--display:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;--mono:ui-monospace,Consolas,monospace}
+body{font-family:var(--display);background:var(--bg);color:var(--ink)}
+.brand b{font-weight:650;letter-spacing:-.04em}.brand small{font:500 10px var(--display);letter-spacing:.08em;color:var(--ink-2)}
+.btn,.composer,.mmenu,dialog,.gaz-tools-menu{box-shadow:none;border-radius:12px}.btn-blue{background:var(--panel-2);border-color:var(--line);color:var(--ink)}.btn-blue:hover{background:var(--bg-2);color:var(--ink)}
+.composer-wrap,body.gazchat-code .composer-wrap{background:var(--bg)!important}.composer,body.gazchat-code .composer{box-shadow:none!important;border-color:var(--line)!important;background:var(--panel)!important;border-radius:16px}.composer:focus-within,body.gazchat-code .composer:focus-within{box-shadow:none!important;border-color:var(--blue-hi)!important}
+.side,body.gazchat-code .side{background:var(--bg-2)!important;border-color:var(--line)!important}.top,body.gazchat-code .top{background:var(--bg)!important;border-color:var(--line)!important}
+.empty h1,html[data-theme] body.gazchat-code .empty h1{font-family:var(--display);font-weight:600;letter-spacing:-.045em;background:none!important;color:var(--ink)!important;-webkit-text-fill-color:var(--ink);font-size:clamp(30px,4vw,44px)}.empty p,html[data-theme] body.gazchat-code .empty p{color:var(--ink-2)}
+.code-model-intro,html[data-theme] body.gazchat-code .code-model-intro{background:var(--panel-2)!important;border-color:var(--line)!important}.code-model-intro strong,.code-model-intro span{color:var(--ink)!important}
+.model-btn,html[data-theme] body.gazchat-code .model-btn{background:var(--panel-2)!important;border-color:var(--line)!important;color:var(--ink)!important}.mmenu,html[data-theme] body.gazchat-code .mmenu{background:var(--panel)!important;border-color:var(--line)!important}.mi:hover,.mi:focus-visible{background:var(--panel-2)!important}
+.code-choice,html[data-theme] body.gazchat-code .code-choice{border-color:var(--line)!important}.code-choice[aria-checked=true],html[data-theme] body.gazchat-code .code-choice[aria-checked=true]{background:var(--panel-2)!important;border-color:var(--blue)!important}.code-choice .code-glyph,.code-choice .mpill{background:var(--panel-2)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.user,.msg.user{color:var(--user-ink)}pre,pre code{background:var(--code);color:var(--ink)}.send{background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style></head>
 <body>
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <symbol id="logo" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#2563EB"/><rect x="3" y="3" width="58" height="58" rx="13" fill="none" stroke="#60A5FA" stroke-opacity=".55" stroke-width="2"/><path d="M44 22.5A15 15 0 1 0 47 34H33" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 6l2.4 5.6L58 14l-5.6 2.4L50 22l-2.4-5.6L42 14l5.6-2.4z" fill="#BFE0FF"/></symbol>
-      <symbol id="spark" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0B1128"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#F59E0B" stroke-width="2.5"/><path d="M36 9L17 36h13l-4 19 21-29H34z" fill="#FBBF24"/></symbol>
-      <symbol id="ponder" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#1E1338"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#A78BFA" stroke-width="2.5"/><path d="M24 24a8 8 0 1 1 12 7c-3 2-4 3.5-4 7" fill="none" stroke="#C4B5FD" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="47" r="3.2" fill="#C4B5FD"/></symbol>
-      <symbol id="quill" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0F2A22"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#34D399" stroke-width="2.5"/><path d="M46 14C30 16 22 28 20 44l4 2c3-9 9-17 18-22-6 7-11 14-13 22h3c8-6 14-18 14-32z" fill="#6EE7B7"/><path d="M18 50h14" stroke="#6EE7B7" stroke-width="3.5" stroke-linecap="round"/></symbol>
-      <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
-      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></symbol>
-      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
-      <symbol id="i-redo" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
-      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
-      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
-      <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v12M6 11l6 6 6-6M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
-      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
-      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
-      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 7h8M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
-    </defs>
-  </svg>
-
-  <div class="app">
-    <aside class="side" id="side" aria-label="Chats">
-      <a class="brand" href="#" id="brandHome"><svg aria-hidden="true"><use href="#logo"/></svg><div><b>GazNano 2</b><small>BY GAZSTUDIOS</small></div></a>
-      <button class="btn btn-blue" id="newChat" type="button"><svg width="18" height="18" aria-hidden="true"><use href="#i-plus"/></svg>New chat</button>
-      <nav class="chat-list" id="chatList" aria-label="Previous chats"></nav>
-      <div class="side-foot">
-        <button type="button" id="openUsage"><svg width="18" height="18" aria-hidden="true"><use href="#i-chart"/></svg>Usage</button>
-        <button type="button" id="openSettings"><svg width="18" height="18" aria-hidden="true"><use href="#i-gear"/></svg>Settings</button>
-        <button type="button" id="exportChat"><svg width="18" height="18" aria-hidden="true"><use href="#i-down"/></svg>Download this chat</button>
-        <a href="https://jdug83.github.io/"><svg width="18" height="18" aria-hidden="true"><use href="#i-home"/></svg>GazStudios home</a>
-      </div>
-    </aside>
-    <div class="scrim" id="scrim"></div>
-
-    <main class="main welcome" id="mainPanel">
-      <header class="top">
-        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open chats"><svg width="22" height="22" aria-hidden="true"><use href="#i-menu"/></svg></button>
-        <div class="top-title"><span class="dot" id="statusDot"></span><span id="brandLabel">GazNano 2</span> <span class="tier" id="tierLabel">Smart</span><span class="proj-chip" id="projLabel" hidden></span></div>
-        <span class="spacer"></span>
-        <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch light or dark theme"><svg width="20" height="20" aria-hidden="true"><use href="#i-moon"/></svg></button>
-        <button class="icon-btn" id="newChatTop" type="button" aria-label="New chat"><svg width="20" height="20" aria-hidden="true"><use href="#i-plus"/></svg></button>
-      </header>
-
-      <div class="thread" id="thread">
-        <div class="empty" id="empty">
-          <svg class="logo" aria-hidden="true"><use href="#logo"/></svg>
-          <h1>What can I help with?</h1>
-          <p>Ask me anything — facts, homework, writing or code. Choose a model to chat on this device or the Gazchat server. Turn on Web search to search the wider web and use source links.</p>
-        </div>
-        <div class="msgs" id="msgs"></div>
-        <div class="sr-only" id="live" role="status"></div>
-      </div>
-
-      <div class="composer-wrap">
-        <form class="composer" id="composer">
-          <label for="input" class="sr-only">Message GazNano 2</label>
-          <div id="editBanner" class="edit-banner" hidden><span>Editing message · resending replaces later replies</span><button id="cancelEdit" type="button">Cancel edit</button></div>
-          <div class="attach-row" id="attachRow" hidden></div>
-          <textarea id="input" rows="1" placeholder="Message GazNano 2…" autocomplete="off"></textarea>
-          <div class="composer-row">
-            <button type="button" class="icon-btn" id="attachBtn" aria-label="Add a picture" title="Add a picture (or paste / drag one in)"><svg width="20" height="20" aria-hidden="true"><use href="#i-image"/></svg></button>
-            <input type="file" id="fileInput" accept="image/*" multiple hidden>
-            <button type="button" class="toggle" id="gazchatCodeToggle" aria-pressed="false" title="Switch to GazchatCode, using Spark 1 or Spark 1 Mini only">
-              <svg width="16" height="16" aria-hidden="true"><use href="#i-folder"/></svg><span>GazchatCode</span>
-            </button>
-            <button type="button" class="toggle" id="lookupToggle" aria-pressed="true" title="Search the wider web for relevant facts and source links">
-              <svg width="16" height="16" aria-hidden="true"><use href="#i-globe"/></svg><span>Web search</span>
-            </button>
-            <span class="spacer"></span>
-            <button type="button" class="model-btn model-pill-compact" id="modelBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="modelMenu"><span id="modelBtnLabel">Smart</span><span id="modelEffortLabel">Medium</span><svg width="14" height="14" aria-hidden="true"><use href="#i-chev"/></svg></button>
-            <button type="button" class="icon-btn" id="micBtn" aria-label="Speak your message" hidden><svg width="20" height="20" aria-hidden="true"><use href="#i-mic"/></svg></button>
-            <button type="submit" class="send" id="sendBtn" aria-label="Send"><svg width="20" height="20" aria-hidden="true"><use href="#i-send"/></svg></button>
-          </div>
-          <div class="mmenu" id="modelMenu" role="dialog" aria-label="Choose a model" hidden></div>
-        </form>
-        <p class="disclaimer" id="disclaimer">GazNano 2 can make mistakes — check anything important.</p>
-      </div>
-    </main>
-  </div>
-
-  <!-- Usage -->
-  <dialog id="usageDlg" aria-labelledby="usageTitle">
-    <div class="dlg-head">
-      <div><h2 id="usageTitle">Usage</h2><p id="usageReset">Your 5 hours start when you send a message.</p></div>
-      <button type="button" class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" aria-hidden="true"><use href="#i-close"/></svg></button>
-    </div>
-    <div class="dlg-body" id="usageRows"></div>
-    <div class="dlg-body" style="padding-top:0"><div class="gpu-note">You get 100% every 5 hours, starting from your first message. Every answer uses some of it — bigger models use more, smaller ones less, and long answers or High effort use a little extra. When you reach 100% you'll need to wait for it to reset. There's also a generous weekly allowance that resets every Monday — you'll rarely reach it. Answers that run on your own device use a quarter as much.</div></div>
-  </dialog>
-
-  <!-- Settings -->
-  <dialog id="settingsDlg" aria-labelledby="setTitle">
-    <div class="dlg-head">
-      <div><h2 id="setTitle">Settings</h2><p>Saved on this device only.</p></div>
-      <button type="button" class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" aria-hidden="true"><use href="#i-close"/></svg></button>
-    </div>
-    <div class="dlg-body">
-      <div class="setting"><div><b>Your name</b><span>So GazNano 2 can use it (optional)</span></div><input id="nameInput" type="text" maxlength="30" placeholder="e.g. Euan" style="width:140px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2)"></div>
-      <div class="setting"><div><b>Answer length</b><span>Separate from thinking effort</span></div><select id="lengthInput" aria-label="Answer length"><option value="short">Short</option><option value="normal">Normal</option><option value="detailed">Detailed</option></select></div>
-      <div class="field" style="margin-top:16px"><label for="customInstructions">Custom instructions</label><textarea id="customInstructions" rows="4" maxlength="2000" placeholder="e.g. Explain things clearly, use British English, and show steps for maths."></textarea><small style="color:var(--ink-3)">Saved on this device and added to future prompts.</small></div>
-      <p style="font-size:13px;color:var(--ink-2)">Device mode processes prompts here. Server mode sends prompts and attached pictures to the configured Gazchat server. Web search sends queries to a public search service. Browser voice services may process audio online. Chats are saved on this device.</p>
-      <div class="setting"><div><b>Read answers aloud</b><span>Speak each new answer automatically</span></div><button type="button" class="switch" id="speakSwitch" role="switch" aria-checked="false" aria-label="Read answers aloud"></button></div>
-      <div class="setting"><div><b>Downloaded brains</b><span id="cacheInfo">Free up space on this device</span></div><button type="button" class="btn" id="clearModels">Delete</button></div>
-      <div class="setting"><div><b>All chats</b><span>Remove every saved chat</span></div><button type="button" class="btn" id="clearChats">Delete all</button></div>
-    </div>
-  </dialog>
-
-  <!-- Project create / edit -->
-  <dialog id="projectDlg" aria-labelledby="projTitle">
-    <div class="dlg-head">
-      <div><h2 id="projTitle">New project</h2><p>Group related chats and give them shared instructions.</p></div>
-      <button type="button" class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" aria-hidden="true"><use href="#i-close"/></svg></button>
-    </div>
-    <div class="dlg-body">
-      <div class="field"><label for="projName">Project name</label><input id="projName" type="text" maxlength="40" placeholder="e.g. Maths homework" autocomplete="off"></div>
-      <div class="field"><label for="projInstr">Instructions (optional)</label><textarea id="projInstr" rows="4" maxlength="1000" placeholder="e.g. I'm in Year 9. Explain things step by step."></textarea></div>
-      <div class="dlg-actions">
-        <button type="button" class="btn btn-danger" id="projDelete" hidden>Delete project</button>
-        <span class="grow"></span>
-        <button type="button" class="btn" data-close>Cancel</button>
-        <button type="button" class="btn btn-blue" id="projSave">Save</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- Move chat to a project -->
-  <dialog id="moveDlg" aria-labelledby="moveTitle">
-    <div class="dlg-head">
-      <div><h2 id="moveTitle">Move to project</h2><p>Pick where this chat should live.</p></div>
-      <button type="button" class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" aria-hidden="true"><use href="#i-close"/></svg></button>
-    </div>
-    <div class="dlg-body" id="moveList"></div>
-  </dialog>
-
-  <div class="toast" id="toast" role="status"></div>
-
-  <script>
+<svg aria-hidden="true" height="0" style="position:absolute" width="0">
+<defs>
+<symbol id="logo" viewbox="0 0 64 64"><rect fill="#e6f0eb" height="64" rx="16" width="64"></rect><rect fill="none" height="58" rx="13" stroke="#526960" stroke-opacity=".55" stroke-width="2" width="58" x="3" y="3"></rect><path d="M44 22.5A15 15 0 1 0 47 34H33" fill="none" stroke="#172b29" stroke-linecap="round" stroke-linejoin="round" stroke-width="7.5"></path><path d="M50 6l2.4 5.6L58 14l-5.6 2.4L50 22l-2.4-5.6L42 14l5.6-2.4z" fill="#526960"></path></symbol>
+<symbol id="spark" viewbox="0 0 64 64"><rect fill="#0B1128" height="64" rx="16" width="64"></rect><rect fill="none" height="60" rx="14" stroke="#F59E0B" stroke-width="2.5" width="60" x="2" y="2"></rect><path d="M36 9L17 36h13l-4 19 21-29H34z" fill="#FBBF24"></path></symbol>
+<symbol id="ponder" viewbox="0 0 64 64"><rect fill="#1E1338" height="64" rx="16" width="64"></rect><rect fill="none" height="60" rx="14" stroke="#A78BFA" stroke-width="2.5" width="60" x="2" y="2"></rect><path d="M24 24a8 8 0 1 1 12 7c-3 2-4 3.5-4 7" fill="none" stroke="#C4B5FD" stroke-linecap="round" stroke-width="5"></path><circle cx="32" cy="47" fill="#C4B5FD" r="3.2"></circle></symbol>
+<symbol id="quill" viewbox="0 0 64 64"><rect fill="#0F2A22" height="64" rx="16" width="64"></rect><rect fill="none" height="60" rx="14" stroke="#34D399" stroke-width="2.5" width="60" x="2" y="2"></rect><path d="M46 14C30 16 22 28 20 44l4 2c3-9 9-17 18-22-6 7-11 14-13 22h3c8-6 14-18 14-32z" fill="#6EE7B7"></path><path d="M18 50h14" stroke="#6EE7B7" stroke-linecap="round" stroke-width="3.5"></path></symbol>
+<symbol id="i-check" viewbox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"></path></symbol>
+<symbol id="i-plus" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path></symbol>
+<symbol id="i-menu" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></symbol>
+<symbol id="i-send" viewbox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"></path></symbol>
+<symbol id="i-stop" viewbox="0 0 24 24"><rect fill="currentColor" height="10" rx="2" width="10" x="7" y="7"></rect></symbol>
+<symbol id="i-trash" viewbox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-copy" viewbox="0 0 24 24"><rect fill="none" height="12" rx="2.5" stroke="currentColor" stroke-width="2" width="12" x="8" y="8"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"></path></symbol>
+<symbol id="i-redo" viewbox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-speak" viewbox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></symbol>
+<symbol id="i-mic" viewbox="0 0 24 24"><rect fill="none" height="11" rx="3" stroke="currentColor" stroke-width="2" width="6" x="9" y="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></symbol>
+<symbol id="i-bulb" viewbox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-globe" viewbox="0 0 24 24"><circle cx="12" cy="12" fill="none" r="9" stroke="currentColor" stroke-width="2"></circle><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z" fill="none" stroke="currentColor" stroke-width="2"></path></symbol>
+<symbol id="i-gear" viewbox="0 0 24 24"><circle cx="12" cy="12" fill="none" r="3" stroke="currentColor" stroke-width="2"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6"></path></symbol>
+<symbol id="i-home" viewbox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-down" viewbox="0 0 24 24"><path d="M12 4v12M6 11l6 6 6-6M5 20h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-image" viewbox="0 0 24 24"><rect fill="none" height="16" rx="3" stroke="currentColor" stroke-width="2" width="18" x="3" y="4"></rect><circle cx="9" cy="10" fill="currentColor" r="2"></circle><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-moon" viewbox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-close" viewbox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></symbol>
+<symbol id="i-chev" viewbox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-folder" viewbox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-edit" viewbox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></symbol>
+<symbol id="i-chart" viewbox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></symbol>
+<symbol id="i-calc" viewbox="0 0 24 24"><rect fill="none" height="18" rx="2.5" stroke="currentColor" stroke-width="2" width="14" x="5" y="3"></rect><path d="M8 7h8M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2.4"></path></symbol>
+</defs>
+</svg>
+<div class="app">
+<aside aria-label="Chats" class="side" id="side">
+<a class="brand" href="#" id="brandHome"><svg aria-hidden="true"><use href="#logo"></use></svg><div><b>Gizmo</b><small>BY GAZSTUDIOS</small></div></a>
+<button class="btn btn-blue" id="newChat" type="button"><svg aria-hidden="true" height="18" width="18"><use href="#i-plus"></use></svg>New chat</button>
+<nav aria-label="Previous chats" class="chat-list" id="chatList"></nav>
+<div class="side-foot">
+<button id="openUsage" type="button"><svg aria-hidden="true" height="18" width="18"><use href="#i-chart"></use></svg>Usage</button>
+<button id="openSettings" type="button"><svg aria-hidden="true" height="18" width="18"><use href="#i-gear"></use></svg>Settings</button>
+<button id="exportChat" type="button"><svg aria-hidden="true" height="18" width="18"><use href="#i-down"></use></svg>Download this chat</button>
+<a href="https://jdug83.github.io/"><svg aria-hidden="true" height="18" width="18"><use href="#i-home"></use></svg>GazStudios home</a>
+</div>
+</aside>
+<div class="scrim" id="scrim"></div>
+<main class="main welcome" id="mainPanel">
+<header class="top">
+<button aria-label="Open chats" class="icon-btn menu-btn" id="menuBtn" type="button"><svg aria-hidden="true" height="22" width="22"><use href="#i-menu"></use></svg></button>
+<div class="top-title"><span class="dot" id="statusDot"></span><span id="brandLabel">GazNano 2</span> <span class="tier" id="tierLabel">Smart</span><span class="proj-chip" hidden="" id="projLabel"></span></div>
+<span class="spacer"></span>
+<button aria-label="Switch light or dark theme" class="icon-btn" id="themeBtn" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-moon"></use></svg></button>
+<button aria-label="New chat" class="icon-btn" id="newChatTop" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-plus"></use></svg></button>
+</header>
+<div class="thread" id="thread">
+<div class="empty" id="empty">
+<svg aria-hidden="true" class="logo"><use href="#logo"></use></svg>
+<h1>What can I help with?</h1>
+<p>Ask me anything — facts, homework, writing or code. Choose a model to chat on this device or the Gazchat server. Turn on Web search to search the wider web and use source links.</p>
+</div>
+<div class="msgs" id="msgs"></div>
+<div class="sr-only" id="live" role="status"></div>
+</div>
+<div class="composer-wrap">
+<form class="composer" id="composer">
+<label class="sr-only" for="input">Message GazNano 2</label>
+<div class="edit-banner" hidden="" id="editBanner"><span>Editing message · resending replaces later replies</span><button id="cancelEdit" type="button">Cancel edit</button></div>
+<div class="attach-row" hidden="" id="attachRow"></div>
+<textarea autocomplete="off" id="input" placeholder="Message GazNano 2…" rows="1"></textarea>
+<div class="composer-row">
+<button aria-label="Add a picture" class="icon-btn" id="attachBtn" title="Add a picture (or paste / drag one in)" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-image"></use></svg></button>
+<input accept="image/*" hidden="" id="fileInput" multiple="" type="file"/>
+<button aria-pressed="false" class="toggle" id="gazchatCodeToggle" title="Switch to GazchatCode, using Spark 1 or Spark 1 Mini only" type="button">
+<svg aria-hidden="true" height="16" width="16"><use href="#i-folder"></use></svg><span>GazchatCode</span>
+</button>
+<button aria-pressed="true" class="toggle" id="lookupToggle" title="Search the wider web for relevant facts and source links" type="button">
+<svg aria-hidden="true" height="16" width="16"><use href="#i-globe"></use></svg><span>Web search</span>
+</button>
+<span class="spacer"></span>
+<button aria-controls="modelMenu" aria-expanded="false" aria-haspopup="dialog" class="model-btn model-pill-compact" id="modelBtn" type="button"><span id="modelBtnLabel">Smart</span><span id="modelEffortLabel">Medium</span><svg aria-hidden="true" height="14" width="14"><use href="#i-chev"></use></svg></button>
+<button aria-label="Speak your message" class="icon-btn" hidden="" id="micBtn" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-mic"></use></svg></button>
+<button aria-label="Send" class="send" id="sendBtn" type="submit"><svg aria-hidden="true" height="20" width="20"><use href="#i-send"></use></svg></button>
+</div>
+<div aria-label="Choose a model" class="mmenu" hidden="" id="modelMenu" role="dialog"></div>
+</form>
+<p class="disclaimer" id="disclaimer">GazNano 2 can make mistakes — check anything important.</p>
+</div>
+</main>
+</div>
+<!-- Usage -->
+<dialog aria-labelledby="usageTitle" id="usageDlg">
+<div class="dlg-head">
+<div><h2 id="usageTitle">Usage</h2><p id="usageReset">Your 5 hours start when you send a message.</p></div>
+<button aria-label="Close" class="icon-btn" data-close="" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-close"></use></svg></button>
+</div>
+<div class="dlg-body" id="usageRows"></div>
+<div class="dlg-body" style="padding-top:0"><div class="gpu-note">You get 100% every 5 hours, starting from your first message. Every answer uses some of it — bigger models use more, smaller ones less, and long answers or High effort use a little extra. When you reach 100% you'll need to wait for it to reset. There's also a generous weekly allowance that resets every Monday — you'll rarely reach it. Answers that run on your own device use a quarter as much.</div></div>
+</dialog>
+<!-- Settings -->
+<dialog aria-labelledby="setTitle" id="settingsDlg">
+<div class="dlg-head">
+<div><h2 id="setTitle">Settings</h2><p>Saved on this device only.</p></div>
+<button aria-label="Close" class="icon-btn" data-close="" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-close"></use></svg></button>
+</div>
+<div class="dlg-body">
+<div class="setting"><div><b>Your name</b><span>So GazNano 2 can use it (optional)</span></div><input id="nameInput" maxlength="30" placeholder="e.g. Euan" style="width:140px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2)" type="text"/></div>
+<div class="setting"><div><b>Answer length</b><span>Separate from thinking effort</span></div><select aria-label="Answer length" id="lengthInput"><option value="short">Short</option><option value="normal">Normal</option><option value="detailed">Detailed</option></select></div>
+<div class="field" style="margin-top:16px"><label for="customInstructions">Custom instructions</label><textarea id="customInstructions" maxlength="2000" placeholder="e.g. Explain things clearly, use British English, and show steps for maths." rows="4"></textarea><small style="color:var(--ink-3)">Saved on this device and added to future prompts.</small></div>
+<p style="font-size:13px;color:var(--ink-2)">Device mode processes prompts here. Server mode sends prompts and attached pictures to the configured Gazchat server. Web search sends queries to a public search service. Browser voice services may process audio online. Chats are saved on this device.</p>
+<div class="setting"><div><b>Read answers aloud</b><span>Speak each new answer automatically</span></div><button aria-checked="false" aria-label="Read answers aloud" class="switch" id="speakSwitch" role="switch" type="button"></button></div>
+<div class="setting"><div><b>Downloaded brains</b><span id="cacheInfo">Free up space on this device</span></div><button class="btn" id="clearModels" type="button">Delete</button></div>
+<div class="setting"><div><b>All chats</b><span>Remove every saved chat</span></div><button class="btn" id="clearChats" type="button">Delete all</button></div>
+</div>
+</dialog>
+<!-- Project create / edit -->
+<dialog aria-labelledby="projTitle" id="projectDlg">
+<div class="dlg-head">
+<div><h2 id="projTitle">New project</h2><p>Group related chats and give them shared instructions.</p></div>
+<button aria-label="Close" class="icon-btn" data-close="" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-close"></use></svg></button>
+</div>
+<div class="dlg-body">
+<div class="field"><label for="projName">Project name</label><input autocomplete="off" id="projName" maxlength="40" placeholder="e.g. Maths homework" type="text"/></div>
+<div class="field"><label for="projInstr">Instructions (optional)</label><textarea id="projInstr" maxlength="1000" placeholder="e.g. I'm in Year 9. Explain things step by step." rows="4"></textarea></div>
+<div class="dlg-actions">
+<button class="btn btn-danger" hidden="" id="projDelete" type="button">Delete project</button>
+<span class="grow"></span>
+<button class="btn" data-close="" type="button">Cancel</button>
+<button class="btn btn-blue" id="projSave" type="button">Save</button>
+</div>
+</div>
+</dialog>
+<!-- Move chat to a project -->
+<dialog aria-labelledby="moveTitle" id="moveDlg">
+<div class="dlg-head">
+<div><h2 id="moveTitle">Move to project</h2><p>Pick where this chat should live.</p></div>
+<button aria-label="Close" class="icon-btn" data-close="" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-close"></use></svg></button>
+</div>
+<div class="dlg-body" id="moveList"></div>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+<script>
   (function(){
   'use strict';
 
@@ -1519,7 +1528,7 @@
     var label = { code:'Code', reason:'Maths & logic', write:'Writing', tiny:'Lightweight' }[fam];
     $('brandLabel').textContent = (typeof gazchatCodeMode !== 'undefined' && gazchatCodeMode) ? 'GazchatCode' : 'Gazchat';
     $('tierLabel').textContent = lite ? 'Lite · web search and maths' : t.name + ' · ' + (onServer(t.key) ? 'Gazchat server' : 'On this device');
-    $('modelBtnLabel').textContent = gazchatCodeMode ? (t.key === 'sparkmini' ? 'Flash · Spark 1 Mini' : 'Forge · Spark 1') : (lite ? 'Lite mode' : t.family === 'nano' && !t.own ? 'GazNano ' + t.name : t.name);
+    $('modelBtnLabel').textContent = gazchatCodeMode ? (t.key === 'sparkmini' ? 'Flash · Spark 1 Mini' : 'Forge · Spark 1') : (lite ? 'Lite mode' : t.family === 'nano' && !t.own ? 'Gazchat Nano 2 · ' + t.name : t.name);
     syncEffortControl();
     $('input').placeholder = lite ? 'Message GazNano 2…' : {
       code: 'Ask Spark 1 to write, explain or fix code…', reason: 'Give ' + t.name + ' a maths problem or puzzle…',
@@ -2012,7 +2021,7 @@
   $('menuBtn').addEventListener('click', function(){ $('side').classList.add('open'); $('scrim').classList.add('show'); });
   $('scrim').addEventListener('click', closeSide);
 
-  function applyTheme(){ document.documentElement.setAttribute('data-theme', prefs.theme || 'dark'); document.querySelector('meta[name=theme-color]').content = prefs.theme === 'light' ? '#F4F7FF' : '#070B1A'; }
+  function applyTheme(){ document.documentElement.setAttribute('data-theme', prefs.theme || 'light'); document.querySelector('meta[name=theme-color]').content = document.documentElement.getAttribute('data-theme') === 'light' ? '#f5f8f3' : '#17231e'; }
   $('themeBtn').addEventListener('click', function(){ prefs.theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; savePrefs(); applyTheme(); });
 
   function syncToggles(){ $('lookupToggle').setAttribute('aria-pressed', String(!!prefs.lookup)); }
@@ -2122,76 +2131,53 @@
     $('modelEffortLabel').textContent=effort[1];
   }
   syncEffortControl();
-  function sliderModels(){
-    return gazchatCodeMode?['spark','sparkmini']:['gizmo','max','genius','spark','sparkmini','smart','fast','mobile'];
-  }
-  function paintModelSlider(){
-    var slider=$('modelSlide');if(!slider)return;
-    var keys=sliderModels(), index=keys.indexOf(tier().key);if(index<0)index=0;
-    var t=TIERS[keys[index]];
-    slider.value=index;slider.setAttribute('aria-valuetext',t.name);slider.title=t.name;
-    slider.parentElement.style.setProperty('--effort-fill',(index/(keys.length-1)*100)+'%');
-    $('slideModelName').textContent=t.name;
-    $('slideModelDescription').textContent=t.tagline;
-  }
-  $('modelMenu').addEventListener('input',function(e){
-    if(e.target.id!=='modelSlide')return;
-    if(busy){paintModelSlider();return;}
-    var key=sliderModels()[Number(e.target.value)], t=TIERS[key];
-    if(!t)return;
-    if(isOut() && gpu.ok){toast('Your allowance has been used');paintModelSlider();return;}
-    if(!(onServer(key)||(gpu.webgpu&&!t.serverOnly))){toast(t.name+' is unavailable right now');paintModelSlider();return;}
-    prefs.tier=key;savePrefs();updateTierUI();refreshUsageUI();paintModelSlider();
-  });
 
+  var NANO2_ORDER = ['fast', 'smart', 'genius', 'max'];
   var menuPanel = 'main', cachedSet = {}, cacheChecked = false;
   function chev(cls){ return '<svg class="' + cls + '" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg>'; }
-  function pickHtml(k){
-    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(), pills = '', srv = onServer(k), usable = srv || (gpu.webgpu && !t.serverOnly);
-    var ico = t.group === 'more' ? '<svg class="ico" aria-hidden="true"><use href="#' + avatarFor(t) + '"/></svg>' : '';
-    return '<button type="button" class="mi" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (usable && !out ? '' : ' disabled') + '>' + ico +
-      '<span class="t"><span class="n">' + esc(t.name) + '</span><span class="d">' + esc(t.tagline) +
-      (out ? ' · Allowance used' : !usable ? ' · Unavailable' : '') + '</span></span>' +
-      (sel ? '<svg class="chk" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>' : '') + '</button>';
+  function gmCheck(sel){
+    return '<span class="gm-chk" aria-hidden="true">' + (sel ? '<svg width="16" height="16"><use href="#i-check"/></svg>' : '') + '</span>';
   }
-  function codePickHtml(k, profile, desc, glyph){
+  function gmRowHtml(k, customName, customDesc){
     var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(), srv = onServer(k), usable = srv || (gpu.webgpu && !t.serverOnly);
-    return '<button type="button" class="mi code-choice" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (usable && !out ? '' : ' disabled') + '>' +
-      '<span class="code-glyph" aria-hidden="true">' + glyph + '</span><span class="t"><span class="n">' + profile + ' <span class="mpill">' + esc(t.name) + '</span></span>' +
-      '<span class="d">' + desc + (out ? ' · Used up' : '') + '</span></span>' +
-      (sel ? '<svg class="chk" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>' : '') + '</button>';
+    var desc = customDesc || t.tagline;
+    return '<button type="button" class="mi gm" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (usable && !out ? '' : ' disabled') + '>' +
+      gmCheck(sel) +
+      '<span class="t"><span class="n">' + esc(customName || t.name) + '</span><span class="d">' + esc(desc) +
+      (out ? ' · Allowance used' : !usable ? ' · Unavailable' : '') + '</span></span></button>';
+  }
+  function nano2GroupRowHtml(){
+    var cur = tier(), isNano2 = NANO2_ORDER.indexOf(cur.key) !== -1;
+    var sub = isNano2 ? cur.name + ' · ' + cur.tagline : 'Fast, Smart, Genius & Max';
+    return '<button type="button" class="mi gm" role="menuitem" aria-checked="' + isNano2 + '" data-panel="nano2">' +
+      gmCheck(isNano2) +
+      '<span class="t"><span class="n">Gazchat Nano 2</span><span class="d">' + esc(sub) + '</span></span>' +
+      '<span class="gm-arr" aria-hidden="true">▸</span></button>';
   }
   function renderMenu(){
     var m = $('modelMenu'), html = '';
-    if(menuPanel!=='effort'){
-      var keys=sliderModels(), effort=EFFORTS.find(function(e){return e[0]===prefs.effort;})||EFFORTS[1];
-      m.innerHTML='<div class="slide-title"><span class="model-bolt" aria-hidden="true">ϟ</span><strong id="slideModelName"></strong><button type="button" class="slide-effort" data-panel="effort">'+effort[1]+' ›</button></div>'+
-        '<div class="effort-track model-slider-track"><span class="effort-dots" aria-hidden="true">'+keys.map(function(){return '<i></i>';}).join('')+'</span><input id="modelSlide" type="range" min="0" max="'+(keys.length-1)+'" step="1" aria-label="Choose model"'+(busy?' disabled':'')+'></div>'+
-        '<p id="slideModelDescription" class="slide-description"></p><div class="slide-ends"><span>'+esc(TIERS[keys[0]].name)+'</span><span>'+esc(TIERS[keys[keys.length-1]].name)+'</span></div>';
-      paintModelSlider();return;
-    }
-    if(gazchatCodeMode){
-      html = '<div class="code-model-intro"><strong>⌘ GazchatCode models</strong><span>Choose your coding engine. Both are Spark models; the profile names make their strengths easier to spot.</span></div>' +
-        codePickHtml('spark','Forge','Best for larger edits, debugging and multi-file reasoning','F');
-      html += codePickHtml('sparkmini','Flash','Lighter and quicker for small fixes and everyday coding','S');
-      html += '<div class="mfoot">Forge uses Spark 1. Flash uses Spark 1 Mini. The underlying model stays the same; these are clearer GazchatCode profiles.</div>' ;
+    if(gazchatCodeMode && menuPanel === 'main'){
+      html = gmRowHtml('spark', 'Forge · Spark 1', 'Best for larger edits & debugging') +
+             gmRowHtml('sparkmini', 'Flash · Spark 1 Mini', 'Quicker for everyday coding') +
+             '<div class="gm-sep"></div>' +
+             '<button type="button" class="mi gm" data-panel="effort">' + gmCheck(false) + '<span class="t"><span class="n">Thinking level</span></span><span class="gm-arr" aria-hidden="true">▸</span></button>';
     } else if(menuPanel === 'main'){
-      var cur = tier(), effortName = EFFORTS.filter(function(e){ return e[0] === prefs.effort; })[0][1];
-      html = '<div class="msec">GazNano 2</div>' + MAIN_ORDER.map(pickHtml).join('') + '<div class="msep"></div>' +
-        '<button type="button" class="mi" data-panel="effort"><span class="t"><span class="n">Effort</span></span><span class="val">' + effortName + '</span>' + chev('rt') + '</button>' +
-        '<button type="button" class="mi" data-panel="more"><span class="t"><span class="n">More models</span><span class="d">Coding and lightweight</span></span>' +
-          (cur.group === 'more' ? '<span class="val">' + esc(cur.name) + '</span>' : '') + chev('rt') + '</button>' +
-        '<div class="mfoot"><button type="button" data-usage>View usage and reset time</button></div>';
+      html = nano2GroupRowHtml() +
+             gmRowHtml('gizmo', 'Gizmo', 'Complex tasks & hardest questions') +
+             gmRowHtml('spark', 'Spark 1', 'Writes, explains and fixes code') +
+             gmRowHtml('sparkmini', 'Spark 1 Mini', 'Coding help on everyday laptops') +
+             gmRowHtml('mobile', 'Mobile', 'Fastest answers on older devices') +
+             '<div class="gm-sep"></div>' +
+             '<button type="button" class="mi gm" data-panel="effort">' + gmCheck(false) + '<span class="t"><span class="n">Thinking level</span></span><span class="gm-arr" aria-hidden="true">▸</span></button>';
+    } else if(menuPanel === 'nano2'){
+      html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>Gazchat Nano 2</div>' +
+             NANO2_ORDER.map(function(k){ return gmRowHtml(k); }).join('');
     } else if(menuPanel === 'effort'){
-      html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>Effort</div>' +
+      html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>Thinking level</div>' +
         EFFORTS.map(function(e){ var sel = prefs.effort === e[0];
-          return '<button type="button" class="mi" role="menuitemradio" aria-checked="' + sel + '" data-effort="' + e[0] + '"><span class="t"><span class="n">' + e[1] + '</span><span class="d">' + e[2] + '</span></span>' +
-            (sel ? '<svg class="chk" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>' : '') + '</button>'; }).join('') +
-        '<div class="mfoot">Thinking applies to supported GazNano models. Set answer length separately in Settings. Extra thinking does not guarantee accuracy.</div>';
-    } else {
-      html = '<div class="mhead"><button type="button" class="icon-btn" data-panel="main" aria-label="Back">' + chev('lt') + '</button>More models</div>' +
-        MORE_GROUPS.map(function(g){ return '<div class="msec">' + g[0] + '</div>' + g[1].map(pickHtml).join(''); }).join('') +
-        '<div class="mfoot"><button type="button" data-usage>View usage and reset time</button></div>';
+          return '<button type="button" class="mi gm" role="menuitemradio" aria-checked="' + sel + '" data-effort="' + e[0] + '">' +
+            gmCheck(sel) +
+            '<span class="t"><span class="n">' + e[1] + '</span><span class="d">' + e[2] + '</span></span></button>'; }).join('');
     }
     m.innerHTML = html;
   }
@@ -2205,9 +2191,9 @@
   }
   async function openMenu(){
     await checkGpu();
-    menuPanel = tier().group === 'more' ? 'more' : 'main';
+    menuPanel = 'main';
     renderMenu(); $('modelMenu').hidden = false; $('modelBtn').setAttribute('aria-expanded', 'true');
-    var first = $('modelMenu').querySelector('#modelSlide') || $('modelMenu').querySelector('[aria-checked="true"]') || $('modelMenu').querySelector('.mi:not([disabled])'); if(first) first.focus();
+    var first = $('modelMenu').querySelector('[aria-checked="true"]') || $('modelMenu').querySelector('.mi:not([disabled])'); if(first) first.focus();
     checkCached();
   }
   function closeMenu(){ $('modelMenu').hidden = true; $('modelBtn').setAttribute('aria-expanded', 'false'); }
@@ -2225,8 +2211,8 @@
   });
   $('modelMenu').addEventListener('click', function(e){
     var panel = e.target.closest('[data-panel]'), pick = e.target.closest('[data-pick]'), eff = e.target.closest('[data-effort]'), use = e.target.closest('[data-usage]');
-    if(panel){ menuPanel = panel.dataset.panel; renderMenu(); var f = $('modelMenu').querySelector('#modelSlide') || $('modelMenu').querySelector('.mi'); if(f) f.focus(); return; }
-    if(eff){ prefs.effort = eff.dataset.effort; savePrefs(); syncEffortControl(); renderMenu(); toast('Effort: ' + eff.textContent.trim().split(/\s{2,}|(?=[A-Z][a-z]+ )/)[0]); return; }
+    if(panel){ menuPanel = panel.dataset.panel; renderMenu(); var f = $('modelMenu').querySelector('[aria-checked="true"]') || $('modelMenu').querySelector('.mi'); if(f) f.focus(); return; }
+    if(eff){ prefs.effort = eff.dataset.effort; savePrefs(); syncEffortControl(); closeMenu(); toast('Thinking level: ' + (EFFORTS.find(function(x){return x[0]===prefs.effort;})||EFFORTS[1])[1]); return; }
     if(use){ closeMenu(); $('usageDlg').showModal(); refreshUsageUI(); return; }
     if(pick){
       if(busy) return toast('Wait for the current answer to finish');
@@ -2312,7 +2298,7 @@
   window.__gn2 = { editMessage:editMessage, importBackup:importBackup, currentChatId:function(){return currentId;}, buildMessages:buildMessages, estimatedTokens:estimatedTokens, outputBudget:outputBudget, contextLimits:CONTEXT_LIMITS, setWatchdog: function(a, b){ WD_FIRST = a; WD_MID = b; }, usage: function(){ return usage; }, isOut: isOut, usedPct: usedPct, charge: charge, costFor: costFor, resetSecs: resetSecs, fmtDur: fmtDur, renderMd: renderMd, splitThinking: splitThinking, server: function(){ return server; }, gpu: function(){ return gpu; }, safeMath: safeMath, mathFromText: mathFromText, shouldLookUp: shouldLookUp, searchQuery: searchQuery };
   })();
   </script>
-  <script>
+<script>
   /* Gazchat Plus: local quality-of-life features. */
   (function(){
     'use strict';
