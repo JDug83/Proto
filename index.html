@@ -595,7 +595,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
 <div class="composer-row">
 <button aria-label="Add a picture" class="icon-btn" id="attachBtn" title="Add a picture (or paste / drag one in)" type="button"><svg aria-hidden="true" height="20" width="20"><use href="#i-image"></use></svg></button>
 <input accept="image/*" hidden="" id="fileInput" multiple="" type="file"/>
-<button aria-pressed="false" class="toggle" id="gazchatCodeToggle" title="Switch to GazchatCode, using Spark 1 or Spark 1 Mini only" type="button">
+<button aria-pressed="false" class="toggle" id="gazchatCodeToggle" title="Switch to GazchatCode, using Spark coding models" type="button">
 <svg aria-hidden="true" height="16" width="16"><use href="#i-folder"></use></svg><span>GazchatCode</span>
 </button>
 <button aria-pressed="true" class="toggle" id="lookupToggle" title="Search the wider web for relevant facts and source links" type="button">
@@ -633,6 +633,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
 <div class="field" style="margin-top:16px"><label for="customInstructions">Custom instructions</label><textarea id="customInstructions" maxlength="2000" placeholder="e.g. Explain things clearly, use British English, and show steps for maths." rows="4"></textarea><small style="color:var(--ink-3)">Saved on this device and added to future prompts.</small></div>
 <p style="font-size:13px;color:var(--ink-2)">Device mode processes prompts here. Server mode sends prompts and attached pictures to the configured Gazchat server. Web search sends queries to a public search service. Browser voice services may process audio online. Chats are saved on this device.</p>
 <div class="setting"><div><b>Read answers aloud</b><span>Speak each new answer automatically</span></div><button aria-checked="false" aria-label="Read answers aloud" class="switch" id="speakSwitch" role="switch" type="button"></button></div>
+<div class="setting"><div><b>Staff access</b><span>Enter the staff password to enable downloads on this device</span></div><input id="staffPassword" type="password" autocomplete="off" placeholder="Staff password" style="width:145px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2)" /></div>
 <div class="setting"><div><b>Downloaded brains</b><span id="cacheInfo">Free up space on this device</span></div><button class="btn" id="clearModels" type="button">Delete</button></div>
 <div class="setting"><div><b>All chats</b><span>Remove every saved chat</span></div><button class="btn" id="clearChats" type="button">Delete all</button></div>
 </div>
@@ -690,11 +691,13 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
     // More models — specialists
     spark:      { key:'spark',      name:'Spark 1',      family:'code',   coder:true, group:'more', hours:2, cost:12,  f16:'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-7B-Instruct-q4f32_1-MLC', gpu:'~5.1 GB', tagline:'Writes, explains and fixes code', badge:'Gaming PC' },
     sparkmini:  { key:'sparkmini',  name:'Spark 1 Mini', family:'code',   coder:true, mini:true, group:'more', hours:10, cost:6, f16:'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-Coder-3B-Instruct-q4f32_1-MLC', gpu:'~2.5 GB', tagline:'Coding help on everyday laptops' },
+    // Spark 2.5 — CodeGemma served by the configured GazChat backend (not a built-in WebLLM model).
+    spark25:    { key:'spark25',    name:'Spark 2.5',    family:'code',   coder:true, serverOnly:true, group:'more', hours:2, cost:18, gpu:'Server', tagline:'Spark 2.5 coding model · requires server setup', badge:'Spark 2.5' },
 
     mobile:     { key:'mobile',     name:'Mobile',       family:'tiny',   group:'more', hours:10, cost:1.5, f16:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', f32:'Qwen2.5-0.5B-Instruct-q4f32_1-MLC', gpu:'~0.9 GB', tagline:'Tiny and quick for older devices' }
   };
   var MAIN_ORDER = ['gizmo', 'max', 'genius', 'smart', 'fast'];
-  var MORE_GROUPS = [['Coding', ['spark', 'sparkmini']], ['Lightweight', ['mobile']]];
+  var MORE_GROUPS = [['Coding', ['spark25', 'spark', 'sparkmini']], ['Lightweight', ['mobile']]];
   var EFFORTS = [['low', 'Low', 'Short, quick answers'], ['medium', 'Medium', 'The right length for each question'], ['high', 'High', 'Enables thinking on supported models; may take longer and use more allowance']];
   function displayName(t){ return t.family === 'nano' && !t.own ? 'GazNano 2' : t.name; }
   function avatarFor(t){ return !t ? 'logo' : t.family === 'code' ? 'spark' : 'logo'; }
@@ -1189,6 +1192,8 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
     rollover();
     if(!usage.start) usage.start = Date.now();
     var spent = costFor(k, w);
+    // Spark 2.5 matches Gizmo's base usage, with a 50% premium for coding-focused work.
+    if(k === 'spark25') spent = Math.round(spent * 1.5 * 10) / 10;
     usage.pct = Math.min(100, Math.round((usage.pct + spent) * 10) / 10);
     syncWeek(); week.pts += spent; store('gn2.week', week);
     usage.msgs++;
@@ -1528,7 +1533,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
     var label = { code:'Code', reason:'Maths & logic', write:'Writing', tiny:'Lightweight' }[fam];
     $('brandLabel').textContent = (typeof gazchatCodeMode !== 'undefined' && gazchatCodeMode) ? 'GazchatCode' : 'Gazchat';
     $('tierLabel').textContent = lite ? 'Lite · web search and maths' : t.name + ' · ' + (onServer(t.key) ? 'Gazchat server' : 'On this device');
-    $('modelBtnLabel').textContent = gazchatCodeMode ? (t.key === 'sparkmini' ? 'Flash · Spark 1 Mini' : 'Forge · Spark 1') : (lite ? 'Lite mode' : t.family === 'nano' && !t.own ? 'Gazchat Nano 2 · ' + t.name : t.name);
+    $('modelBtnLabel').textContent = gazchatCodeMode ? (t.key === 'spark25' ? 'Spark 2.5' : t.key === 'sparkmini' ? 'Flash · Spark 1 Mini' : 'Forge · Spark 1') : (lite ? 'Lite mode' : t.family === 'nano' && !t.own ? 'Gazchat Nano 2 · ' + t.name : t.name);
     syncEffortControl();
     $('input').placeholder = lite ? 'Message GazNano 2…' : {
       code: 'Ask Spark 1 to write, explain or fix code…', reason: 'Give ' + t.name + ' a maths problem or puzzle…',
@@ -1873,6 +1878,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
   }
 
   function sendNow(){
+    if(!server.ok){ toast('All models are unavailable while the Gazchat server is offline.'); return; }
     if(loadingPictures){ toast('Wait for the picture to finish opening'); return; }
     if(busy){ stopFlag = true; interruptAI(); return; }
     if(gpu.ok && isOut()){ toast('You\'ve used 100% — you can chat again ' + chatAgainText()); refreshUsageUI(); return; }
@@ -1975,6 +1981,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
     }
     var dl = e.target.closest('[data-download]');
     if(dl){
+      if(!staffDownloadEnabled){ toast('Downloads are staff-only. Enter the staff password in Settings.'); return; }
       var b2 = dl.closest('.codebox'), lang = (b2.dataset.lang || 'txt').toLowerCase();
       var ext = { javascript:'js', js:'js', typescript:'ts', ts:'ts', python:'py', py:'py', html:'html', htm:'html', css:'css', json:'json', svg:'svg', java:'java', c:'c', cpp:'cpp', 'c++':'cpp', csharp:'cs', cs:'cs', bash:'sh', sh:'sh', shell:'sh', sql:'sql', lua:'lua', ruby:'rb', go:'go', rust:'rs', php:'php', xml:'xml', markdown:'md', md:'md' }[lang] || 'txt';
       var a2 = document.createElement('a');
@@ -2027,16 +2034,16 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
   function syncToggles(){ $('lookupToggle').setAttribute('aria-pressed', String(!!prefs.lookup)); }
   $('lookupToggle').addEventListener('click', function(){ prefs.lookup = !prefs.lookup; savePrefs(); syncToggles(); toast(prefs.lookup ? 'Web search enabled' : 'Web search off'); });
 
-  // GazchatCode is an agent-style coding workflow, restricted to Spark 1 / Spark 1 Mini.
+  // GazchatCode is an agent-style coding workflow, restricted to Spark coding models.
   var gazchatCodeMode = false;
   function syncGazchatCode(){
     var b = $('gazchatCodeToggle');
     if(!b) return;
     b.setAttribute('aria-pressed', String(gazchatCodeMode));
     document.body.classList.toggle('gazchat-code', gazchatCodeMode);
-    b.title = gazchatCodeMode ? 'GazchatCode is on · Spark 1 or Spark 1 Mini only' : 'Switch to GazchatCode, using Spark 1 or Spark 1 Mini only';
+    b.title = gazchatCodeMode ? 'GazchatCode is on · Spark coding models only' : 'Switch to GazchatCode, using Spark coding models';
     updateTierUI();
-    if(gazchatCodeMode) toast('GazchatCode on · Spark 1 / Spark 1 Mini');
+    if(gazchatCodeMode) toast('GazchatCode on · Spark coding models');
   }
   $('gazchatCodeToggle').addEventListener('click', function(){
     if(busy) return toast('Wait for the current answer to finish');
@@ -2134,17 +2141,20 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
 
   var NANO2_ORDER = ['fast', 'smart', 'genius', 'max'];
   var menuPanel = 'main', cachedSet = {}, cacheChecked = false;
+  // UI-only staff gate. A real security boundary must be enforced by the backend.
+  var staffDownloadEnabled = false;
+  var STAFF_PASSWORD = 'sunsuncube';
   function chev(cls){ return '<svg class="' + cls + '" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg>'; }
   function gmCheck(sel){
     return '<span class="gm-chk" aria-hidden="true">' + (sel ? '<svg width="16" height="16"><use href="#i-check"/></svg>' : '') + '</span>';
   }
   function gmRowHtml(k, customName, customDesc){
-    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(), srv = onServer(k), usable = srv || (gpu.webgpu && !t.serverOnly);
+    var t = TIERS[k], sel = tier().key === k, out = gpu.ok && isOut(), srv = onServer(k), usable = !!server.ok && srv;
     var desc = customDesc || t.tagline;
     return '<button type="button" class="mi gm" role="menuitemradio" aria-checked="' + sel + '" data-pick="' + k + '"' + (usable && !out ? '' : ' disabled') + '>' +
       gmCheck(sel) +
       '<span class="t"><span class="n">' + esc(customName || t.name) + '</span><span class="d">' + esc(desc) +
-      (out ? ' · Allowance used' : !usable ? ' · Unavailable' : '') + '</span></span></button>';
+      (out ? ' · Allowance used' : !server.ok ? ' · Server offline' : !usable ? ' · Unavailable' : '') + '</span></span></button>';
   }
   function nano2GroupRowHtml(){
     var cur = tier(), isNano2 = NANO2_ORDER.indexOf(cur.key) !== -1;
@@ -2157,13 +2167,15 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
   function renderMenu(){
     var m = $('modelMenu'), html = '';
     if(gazchatCodeMode && menuPanel === 'main'){
-      html = gmRowHtml('spark', 'Forge · Spark 1', 'Best for larger edits & debugging') +
+      html = gmRowHtml('spark25', 'Spark 2.5', 'Coding model · server required') +
+             gmRowHtml('spark', 'Forge · Spark 1', 'Best for larger edits & debugging') +
              gmRowHtml('sparkmini', 'Flash · Spark 1 Mini', 'Quicker for everyday coding') +
              '<div class="gm-sep"></div>' +
              '<button type="button" class="mi gm" data-panel="effort">' + gmCheck(false) + '<span class="t"><span class="n">Thinking level</span></span><span class="gm-arr" aria-hidden="true">▸</span></button>';
     } else if(menuPanel === 'main'){
       html = nano2GroupRowHtml() +
              gmRowHtml('gizmo', 'Gizmo', 'Complex tasks & hardest questions') +
+             gmRowHtml('spark25', 'Spark 2.5', 'Coding model · server required') +
              gmRowHtml('spark', 'Spark 1', 'Writes, explains and fixes code') +
              gmRowHtml('sparkmini', 'Spark 1 Mini', 'Coding help on everyday laptops') +
              gmRowHtml('mobile', 'Mobile', 'Fastest answers on older devices') +
@@ -2216,7 +2228,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
     if(use){ closeMenu(); $('usageDlg').showModal(); refreshUsageUI(); return; }
     if(pick){
       if(busy) return toast('Wait for the current answer to finish');
-      if(gazchatCodeMode && TIERS[pick.dataset.pick] && TIERS[pick.dataset.pick].family !== 'code'){ toast('GazchatCode only uses Spark 1 or Spark 1 Mini'); return; } prefs.tier = pick.dataset.pick; savePrefs(); updateTierUI(); refreshUsageUI(); closeMenu();
+      if(gazchatCodeMode && TIERS[pick.dataset.pick] && TIERS[pick.dataset.pick].family !== 'code'){ toast('GazchatCode only uses Spark coding models'); return; } prefs.tier = pick.dataset.pick; savePrefs(); updateTierUI(); refreshUsageUI(); closeMenu();
       var t = TIERS[prefs.tier];
       toast(displayName(t) + (t.family === 'nano' && !t.own ? ' ' + t.name : '') + ' selected' + (engine && loadedModel !== modelId(t) ? ' — loads on your next message' : ''));
       input.focus();
@@ -2225,6 +2237,7 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
 
   // Settings
   function openSettings(){
+    $('staffPassword').value = '';
     $('lengthInput').value = prefs.answerLength || 'normal';
     $('nameInput').value = prefs.name || '';
     if($('customInstructions')) $('customInstructions').value = prefs.customInstructions || '';
@@ -2233,6 +2246,11 @@ body{font-family:var(--display);background:var(--bg);color:var(--ink)}
   }
   $('openSettings').addEventListener('click', function(){ closeSide(); openSettings(); });
   $('openUsage').addEventListener('click', function(){ closeSide(); $('usageDlg').showModal(); refreshUsageUI(); });
+  $('staffPassword').addEventListener('change', function(){
+    staffDownloadEnabled = this.value === STAFF_PASSWORD;
+    this.value = '';
+    toast(staffDownloadEnabled ? 'Staff downloads enabled for this session' : 'Incorrect staff password');
+  });
   $('lengthInput').addEventListener('change', function(){ prefs.answerLength = this.value; savePrefs(); });
   if($('customInstructions')) $('customInstructions').addEventListener('change', function(){ prefs.customInstructions = this.value.trim().slice(0,2000); savePrefs(); });
   $('nameInput').addEventListener('change', function(){ prefs.name = this.value.trim().slice(0, 30); savePrefs(); });
