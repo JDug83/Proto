@@ -526,6 +526,13 @@
       <small id="srvModelOverrideLabel" style="color:var(--ink-3);"></small>
     </div>
     <div class="field">
+      <label for="srvUrlInput" style="font-weight:600;font-size:13px;">Server URL (leave blank for localhost / gazchat-server.json)</label>
+      <div style="display:flex;gap:8px;">
+        <input id="srvUrlInput" placeholder="https://....trycloudflare.com" style="flex:1;" type="url"/>
+        <button class="btn" id="srvUrlSave" type="button">Connect</button>
+      </div>
+    </div>
+    <div class="field">
       <label for="srvKeyInput" style="font-weight:600;font-size:13px;">Remote Access Key (only needed over Cloudflare Tunnel)</label>
       <div style="display:flex;gap:8px;">
         <input id="srvKeyInput" placeholder="Paste key from server-key.txt" style="flex:1;" type="password"/>
@@ -743,33 +750,46 @@
     return h;
   }
   function probeHealth(u){
-    var ctrl = new AbortController(), tm = setTimeout(function(){ ctrl.abort(); }, 1500);
+    var isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(u);
+    var ctrl = new AbortController(), tm = setTimeout(function(){ ctrl.abort(); }, isLocal ? 1200 : 6000);
     return fetch(u.replace(/\/+$/,'') + '/health', { cache:'no-store', signal:ctrl.signal, headers: serverHeaders(false) })
       .then(function(r){ return r.json(); })
       .finally(function(){ clearTimeout(tm); });
   }
-  async function checkGpu(){
-    if(gpu.checked) return gpu;
-    gpu.mobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
-    if('gpu' in navigator){
-      try{
-        var a = await navigator.gpu.requestAdapter();
-        if(a){ gpu.webgpu = true; gpu.f16 = a.features && a.features.has('shader-f16'); }
-      }catch(e){}
+  async function checkGpu(force){
+    if(gpu.checked && !force && serverReady()) return gpu;
+    if(gpu.checked && !force && server.locked) return gpu;
+    if(!gpu.checked){
+      gpu.mobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+      if('gpu' in navigator){
+        try{
+          var a = await navigator.gpu.requestAdapter();
+          if(a){ gpu.webgpu = true; gpu.f16 = a.features && a.features.has('shader-f16'); }
+        }catch(e){}
+      }
     }
+    server.ok = false; server.locked = false; server.ollama = false;
     var candidates = [];
     try{ var q = new URLSearchParams(location.search).get('server'); if(q) candidates.push(q); }catch(e){}
+    if(prefs.serverUrl && candidates.indexOf(prefs.serverUrl) === -1) candidates.push(prefs.serverUrl);
+    candidates.push('http://localhost:8787');
     try{
       var cfg = await fetch('gazchat-server.json?t=' + Date.now(), { cache:'no-store' });
-      if(cfg.ok){ var j = await cfg.json(); if(j && j.url) candidates.push(j.url); }
+      if(cfg.ok){ var j = await cfg.json(); if(j && j.url && candidates.indexOf(j.url) === -1) candidates.push(j.url); }
     }catch(e){}
-    candidates.push('http://localhost:8787');
+    server.tried = candidates.slice();
+    var lockedHit = null;
     for(var i = 0; i < candidates.length; i++){
       try{
         var h = await probeHealth(candidates[i]);
         if(h && h.ok){
-          server.ok = h.authorized !== false;
-          server.locked = h.authorized === false;
+          if(h.authorized === false){
+            if(!lockedHit) lockedHit = { url: candidates[i].replace(/\/+$/,''), h: h };
+            continue;
+          }
+          server.ok = true;
+          server.locked = false;
+          server.ollama = !!h.ollama;
           server.url = candidates[i].replace(/\/+$/,'');
           server.models = h.models || {};
           server.installed = h.installed || [];
@@ -778,19 +798,35 @@
         }
       }catch(e){}
     }
+    if(!server.ok && lockedHit){
+      server.locked = true;
+      server.url = lockedHit.url;
+    }
     gpu.server = server.ok;
     gpu.ok = gpu.webgpu || gpu.server;
     gpu.checked = true;
     updateRuntimeBanner();
     return gpu;
   }
+  function serverReady(){ return server.ok && (server.ollama || (server.installed && server.installed.length > 0)); }
   function updateRuntimeBanner(){
     var d = $('disclaimer'), tl = $('tierLabel'), sb = $('serverBtn'), st = $('serverBtnText');
-    if(sb) sb.classList.toggle('on', !!server.ok);
-    if(st) st.textContent = server.ok ? ('Server: ' + (server.override || 'On')) : 'Server: Off';
-    if(server.ok){
+    if(sb) sb.classList.toggle('on', serverReady());
+    if(st){
+      if(server.locked) st.textContent = 'Server: Locked';
+      else if(server.ok && !serverReady()) st.textContent = 'Server: No Ollama';
+      else if(server.ok) st.textContent = 'Server: ' + (server.override || 'On');
+      else st.textContent = 'Server: Off';
+    }
+    if(serverReady()){
       if(tl) tl.textContent = tier().name + ' · PC Server';
       if(d) d.textContent = 'Connected to your GazChat PC Server (' + server.url + ').';
+    } else if(server.locked){
+      if(tl) tl.textContent = tier().name + ' · Locked';
+      if(d) d.textContent = 'PC Server found — click "Server: Locked" at the top and enter your Access Key.';
+    } else if(server.ok){
+      if(tl) tl.textContent = tier().name + ' · Local Device';
+      if(d) d.textContent = 'PC Server is on, but Ollama has no models running on the PC — open Server to pull one.';
     } else if(gpu.webgpu){
       if(tl) tl.textContent = tier().name + ' · Local Device';
       if(d) d.textContent = 'PC server is off — running locally on your device (WebGPU).';
@@ -799,7 +835,7 @@
       if(d) d.textContent = 'PC server is off and WebGPU is unavailable — running in local Lite mode.';
     }
   }
-  function onServer(k){ return gpu.server && server.models[k]; }
+  function onServer(k){ return gpu.server && (server.models[k] || (server.installed && server.installed.length > 0)); }
   function setDot(s){ $('statusDot').className = 'dot' + (s ? ' ' + s : ''); }
 
   /* Token limits — 4K default matches original Max for fast 6 GB GPU performance; adjustable in Settings. */
@@ -1018,6 +1054,8 @@
           if(!rafId) rafId = requestAnimationFrame(paintStream);
         }
         if(!useSrv){
+          if(server.locked) throw new Error('PC Server is locked — click "Server: Locked" at the top and enter your Remote Access Key.');
+          if(server.ok && !serverReady()) throw new Error('PC Server is connected, but Ollama is not running or has no models installed on your PC. Click the Server pill to pull a model.');
           if(pics && pics.length) toast('Tip: Image vision requires GazChat PC Server (Ollama)');
           if(!engine || loadedModel !== modelId(t) || loadedCtx !== ctxSize()){
             status.innerHTML = '<div class="load-card"><b>Loading ' + t.name + '…</b><div class="bar"><i></i></div><small>Starting…</small></div>';
@@ -1661,18 +1699,19 @@
   async function refreshServerDlg(){
     gpu.checked = false;
     server.ok = false; server.locked = false;
-    await checkGpu();
+    await checkGpu(true);
     var sum = $('srvSummary'), list = $('srvInstalledList'), ov = $('srvModelOverrideLabel');
+    if($('srvUrlInput')) $('srvUrlInput').value = prefs.serverUrl || '';
     if($('srvKeyInput')) $('srvKeyInput').value = prefs.serverKey || '';
     if(ov) ov.textContent = server.override ? ('Active override: ' + server.override) : 'Using tier default model';
     if(server.locked){
-      sum.textContent = 'Server locked — paste your Remote Access Key from server-key.txt below.';
+      sum.textContent = 'Server locked (' + server.url + ') — paste your Remote Access Key below.';
       list.innerHTML = '<div class="mgr-row"><small>Access key required for remote Cloudflare Tunnel connections.</small></div>';
       return;
     }
     if(!server.ok){
-      sum.textContent = 'Offline — start gazchat-server/start-server.bat to connect Ollama.';
-      list.innerHTML = '<div class="mgr-row"><small>Server not reachable at http://localhost:8787</small></div>';
+      sum.textContent = 'Offline — could not reach PC server.';
+      list.innerHTML = '<div class="mgr-row"><small>Checked: ' + esc((server.tried || ['http://localhost:8787']).join(', ')) + '</small></div>';
       return;
     }
     sum.textContent = 'Connected to ' + server.url + ' · ' + (server.installed ? server.installed.length : 0) + ' Ollama model(s) installed';
@@ -1689,6 +1728,12 @@
   }
   $('serverBtn').addEventListener('click', function(){ refreshServerDlg(); $('serverDlg').showModal(); });
   $('srvRefresh').addEventListener('click', refreshServerDlg);
+  $('srvUrlSave').addEventListener('click', function(){
+    prefs.serverUrl = ($('srvUrlInput').value || '').trim().replace(/\/+$/, '');
+    savePrefs();
+    toast(prefs.serverUrl ? 'Connecting to ' + prefs.serverUrl + '…' : 'Using default server discovery');
+    refreshServerDlg();
+  });
   $('srvKeySave').addEventListener('click', function(){
     prefs.serverKey = ($('srvKeyInput').value || '').trim();
     savePrefs();
